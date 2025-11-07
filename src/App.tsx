@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import AddExpense from "./pages/AddExpense";
 import Expenses from "./pages/Expenses";
 import Budgets from "./pages/Budgets";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/add-expense" element={<Layout><AddExpense /></Layout>} />
           <Route path="/expenses" element={<Layout><Expenses /></Layout>} />
           <Route path="/budgets" element={<Layout><Budgets /></Layout>} />
+          <Route path="/profile" element={<Layout><Profile /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

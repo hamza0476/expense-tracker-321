@@ -61,10 +61,17 @@ const AddExpense = () => {
 
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">
-      <Card className="shadow-lg">
+      <div className="mb-6">
+        <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          Add New Expense
+        </h2>
+        <p className="text-muted-foreground">Track a new expense transaction</p>
+      </div>
+      
+      <Card className="shadow-xl border-border/40">
         <CardHeader>
-          <CardTitle className="text-2xl">Add New Expense</CardTitle>
-          <CardDescription>Enter the details of your expense</CardDescription>
+          <CardTitle className="text-xl">Expense Details</CardTitle>
+          <CardDescription>Fill in all the required information</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

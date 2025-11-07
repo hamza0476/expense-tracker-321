@@ -129,24 +129,26 @@ const Expenses = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Expenses</h2>
-          <p className="text-muted-foreground">View and manage your expenses</p>
+          <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            Expenses
+          </h2>
+          <p className="text-muted-foreground">View and manage all your transactions</p>
         </div>
-        <Button onClick={exportToCSV} variant="outline" className="gap-2">
+        <Button onClick={exportToCSV} variant="outline" className="gap-2 shadow-sm">
           <Download className="h-4 w-4" />
           Export CSV
         </Button>
       </div>
 
-      <Card>
+      <Card className="shadow-lg border-border/40">
         <CardHeader>
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="relative flex-1 w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search expenses..."
+                placeholder="Search by category, vendor, or description..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -155,42 +157,50 @@ const Expenses = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border">
+          <div className="rounded-md border border-border/40 overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Vendor</TableHead>
-                  <TableHead>Payment</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                <TableRow className="bg-muted/30">
+                  <TableHead className="font-semibold">Date</TableHead>
+                  <TableHead className="font-semibold">Category</TableHead>
+                  <TableHead className="font-semibold hidden md:table-cell">Description</TableHead>
+                  <TableHead className="font-semibold hidden lg:table-cell">Vendor</TableHead>
+                  <TableHead className="font-semibold hidden lg:table-cell">Payment</TableHead>
+                  <TableHead className="text-right font-semibold">Amount</TableHead>
+                  <TableHead className="text-right font-semibold">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredExpenses.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                      No expenses found
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
+                      <div className="flex flex-col items-center gap-2">
+                        <Search className="h-8 w-8 opacity-50" />
+                        <p>No expenses found</p>
+                        <p className="text-xs">Try adjusting your search</p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredExpenses.map((expense) => (
-                    <TableRow key={expense.id}>
-                      <TableCell>{format(new Date(expense.date), "MMM dd, yyyy")}</TableCell>
+                    <TableRow key={expense.id} className="hover:bg-muted/30 transition-colors">
+                      <TableCell className="font-medium">
+                        {format(new Date(expense.date), "MMM dd, yyyy")}
+                      </TableCell>
                       <TableCell>
                         <Badge
                           style={{ backgroundColor: getCategoryColor(expense.category) }}
-                          className="text-white"
+                          className="text-white font-medium shadow-sm"
                         >
                           {expense.category}
                         </Badge>
                       </TableCell>
-                      <TableCell>{expense.description || "-"}</TableCell>
-                      <TableCell>{expense.vendor || "-"}</TableCell>
-                      <TableCell>{expense.payment_method || "-"}</TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell className="hidden md:table-cell max-w-xs truncate">
+                        {expense.description || "-"}
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">{expense.vendor || "-"}</TableCell>
+                      <TableCell className="hidden lg:table-cell">{expense.payment_method || "-"}</TableCell>
+                      <TableCell className="text-right font-bold text-lg">
                         ₹{Number(expense.amount).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right">
@@ -198,8 +208,9 @@ const Expenses = () => {
                           variant="ghost"
                           size="icon"
                           onClick={() => setDeleteId(expense.id)}
+                          className="hover:bg-destructive/10 hover:text-destructive"
                         >
-                          <Trash2 className="h-4 w-4 text-destructive" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>
                     </TableRow>

@@ -45,24 +45,34 @@ const Layout = ({ children }: LayoutProps) => {
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col">
-          <header className="h-16 border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10 flex items-center justify-between px-6">
-            <div className="flex items-center gap-4">
+          <header className="h-16 border-b border-border/40 bg-card/30 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between px-4 md:px-6 shadow-sm">
+            <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="hover:bg-primary/10"
               >
                 <Menu className="h-5 w-5" />
               </Button>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                ExpenseTracker
-              </h1>
+              <div>
+                <h1 className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
+                  ExpenseWiz
+                </h1>
+                <p className="hidden sm:block text-xs text-muted-foreground">Smart Expense Management</p>
+              </div>
             </div>
-            <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleLogout} 
+              title="Logout"
+              className="hover:bg-destructive/10 hover:text-destructive transition-colors"
+            >
               <LogOut className="h-5 w-5" />
             </Button>
           </header>
-          <main className="flex-1 p-6 overflow-auto">
+          <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto bg-gradient-to-br from-background via-background to-primary/5">
             {children}
           </main>
         </div>

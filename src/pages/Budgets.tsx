@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { EXPENSE_CATEGORIES, getCategoryColor } from "@/lib/categories";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Wallet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface Budget {
@@ -153,22 +153,24 @@ const Budgets = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Budgets</h2>
-          <p className="text-muted-foreground">Manage your monthly budgets</p>
+          <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            Budgets
+          </h2>
+          <p className="text-muted-foreground">Set limits and track your spending</p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)} className="gap-2">
+        <Button onClick={() => setShowForm(!showForm)} className="gap-2 shadow-lg">
           <Plus className="h-4 w-4" />
-          Add Budget
+          {showForm ? "Cancel" : "Add Budget"}
         </Button>
       </div>
 
       {showForm && (
-        <Card>
+        <Card className="shadow-xl border-border/40 bg-gradient-to-br from-card to-card/50">
           <CardHeader>
-            <CardTitle>Add New Budget</CardTitle>
-            <CardDescription>Set a budget for a category</CardDescription>
+            <CardTitle className="text-xl">Create New Budget</CardTitle>
+            <CardDescription>Set spending limits for specific categories</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -233,15 +235,15 @@ const Budgets = () => {
         </Card>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {spending.map((item) => (
-          <Card key={item.category} className="hover-scale">
+          <Card key={item.category} className="hover-scale border-border/40 shadow-lg bg-gradient-to-br from-card to-card/50">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">
                   <Badge
                     style={{ backgroundColor: getCategoryColor(item.category) }}
-                    className="text-white"
+                    className="text-white font-semibold shadow-md"
                   >
                     {item.category}
                   </Badge>
@@ -253,34 +255,45 @@ const Budgets = () => {
                     const budget = budgets.find(b => b.category === item.category);
                     if (budget) handleDelete(budget.id);
                   }}
+                  className="hover:bg-destructive/10 hover:text-destructive"
                 >
-                  <Trash2 className="h-4 w-4 text-destructive" />
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Spent</span>
-                <span className="font-bold">₹{item.spent.toFixed(2)}</span>
+                <span className="font-bold text-lg">₹{item.spent.toFixed(2)}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Budget</span>
-                <span>₹{item.budget.toFixed(2)}</span>
+                <span className="font-semibold">₹{item.budget.toFixed(2)}</span>
               </div>
-              <Progress value={Math.min(item.percentage, 100)} className="h-2" />
-              <p className={`text-sm font-medium ${getStatusColor(item.percentage)}`}>
-                {item.percentage.toFixed(1)}% used
-                {item.percentage > 100 && " - Over Budget!"}
-                {item.percentage > 80 && item.percentage <= 100 && " - Warning"}
-              </p>
+              <Progress value={Math.min(item.percentage, 100)} className="h-2.5" />
+              <div className="flex items-center justify-between">
+                <p className={`text-sm font-semibold ${getStatusColor(item.percentage)}`}>
+                  {item.percentage.toFixed(1)}% used
+                  {item.percentage > 100 && " - Over!"}
+                  {item.percentage > 80 && item.percentage <= 100 && " - Warning"}
+                  {item.percentage <= 80 && " - Good"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  ₹{Math.max(0, item.budget - item.spent).toFixed(0)} left
+                </p>
+              </div>
             </CardContent>
           </Card>
         ))}
 
         {spending.length === 0 && (
-          <Card className="col-span-full">
-            <CardContent className="flex items-center justify-center py-12">
-              <p className="text-muted-foreground">No budgets set. Add one to get started!</p>
+          <Card className="col-span-full border-border/40 shadow-lg">
+            <CardContent className="flex flex-col items-center justify-center py-16 gap-4">
+              <Wallet className="h-16 w-16 text-muted-foreground/30" />
+              <div className="text-center">
+                <p className="text-lg font-semibold text-muted-foreground">No budgets set yet</p>
+                <p className="text-sm text-muted-foreground">Click "Add Budget" to create your first budget</p>
+              </div>
             </CardContent>
           </Card>
         )}
