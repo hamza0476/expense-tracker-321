@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Search, Trash2, Edit, Download } from "lucide-react";
-import { format } from "date-fns";
+import { Search, Trash2, Edit, Download, Filter } from "lucide-react";
+import { format, startOfMonth, endOfMonth } from "date-fns";
 import { getCategoryColor } from "@/lib/categories";
 import {
   AlertDialog,
@@ -19,6 +19,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { EditExpenseDialog } from "@/components/EditExpenseDialog";
+import { EXPENSE_CATEGORIES } from "@/lib/categories";
 
 interface Expense {
   id: string;
@@ -28,31 +37,59 @@ interface Expense {
   date: string;
   payment_method: string;
   vendor: string;
+  notes: string;
 }
 
 const Expenses = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [dateFilter, setDateFilter] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [editExpense, setEditExpense] = useState<Expense | null>(null);
 
   useEffect(() => {
     fetchExpenses();
   }, []);
 
   useEffect(() => {
+    let filtered = [...expenses];
+
+    // Search filter
     if (searchTerm) {
-      const filtered = expenses.filter(exp =>
+      filtered = filtered.filter(exp =>
         exp.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
         exp.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         exp.vendor?.toLowerCase().includes(searchTerm.toLowerCase())
       );
-      setFilteredExpenses(filtered);
-    } else {
-      setFilteredExpenses(expenses);
     }
-  }, [searchTerm, expenses]);
+
+    // Category filter
+    if (categoryFilter !== "all") {
+      filtered = filtered.filter(exp => exp.category === categoryFilter);
+    }
+
+    // Date filter
+    if (dateFilter !== "all") {
+      const now = new Date();
+      const monthStart = startOfMonth(now);
+      const monthEnd = endOfMonth(now);
+      
+      if (dateFilter === "this-month") {
+        filtered = filtered.filter(exp => {
+          const expDate = new Date(exp.date);
+          return expDate >= monthStart && expDate <= monthEnd;
+        });
+      } else if (dateFilter === "last-30-days") {
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        filtered = filtered.filter(exp => new Date(exp.date) >= thirtyDaysAgo);
+      }
+    }
+
+    setFilteredExpenses(filtered);
+  }, [searchTerm, categoryFilter, dateFilter, expenses]);
 
   const fetchExpenses = async () => {
     try {
@@ -144,15 +181,60 @@ const Expenses = () => {
 
       <Card className="shadow-lg border-border/40">
         <CardHeader>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div className="relative flex-1 w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by category, vendor, or description..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <div className="relative flex-1 w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by category, vendor, or description..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Button
+                variant="outline"
+                className="gap-2 w-full sm:w-auto"
+                onClick={() => {
+                  setSearchTerm("");
+                  setCategoryFilter("all");
+                  setDateFilter("all");
+                }}
+              >
+                <Filter className="h-4 w-4" />
+                Clear Filters
+              </Button>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-full sm:w-[200px]">
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {EXPENSE_CATEGORIES.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={dateFilter} onValueChange={setDateFilter}>
+                <SelectTrigger className="w-full sm:w-[200px]">
+                  <SelectValue placeholder="All Time" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Time</SelectItem>
+                  <SelectItem value="this-month">This Month</SelectItem>
+                  <SelectItem value="last-30-days">Last 30 Days</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <div className="text-sm text-muted-foreground flex items-center">
+                {filteredExpenses.length} expense{filteredExpenses.length !== 1 ? 's' : ''} found
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -201,17 +283,27 @@ const Expenses = () => {
                       <TableCell className="hidden lg:table-cell">{expense.vendor || "-"}</TableCell>
                       <TableCell className="hidden lg:table-cell">{expense.payment_method || "-"}</TableCell>
                       <TableCell className="text-right font-bold text-lg">
-                        ₹{Number(expense.amount).toFixed(2)}
+                        ${Number(expense.amount).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeleteId(expense.id)}
-                          className="hover:bg-destructive/10 hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setEditExpense(expense)}
+                            className="hover:bg-primary/10 hover:text-primary"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDeleteId(expense.id)}
+                            className="hover:bg-destructive/10 hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -238,6 +330,13 @@ const Expenses = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <EditExpenseDialog
+        expense={editExpense}
+        open={!!editExpense}
+        onOpenChange={(open) => !open && setEditExpense(null)}
+        onSuccess={fetchExpenses}
+      />
     </div>
   );
 };

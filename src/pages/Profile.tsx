@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { User, Mail, Save } from "lucide-react";
+import { User, Mail, Save, Upload, Loader2 } from "lucide-react";
 
 interface Profile {
   full_name: string;
@@ -16,6 +16,7 @@ interface Profile {
 const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [email, setEmail] = useState("");
   const [profile, setProfile] = useState<Profile>({
     full_name: "",
@@ -52,6 +53,77 @@ const Profile = () => {
       toast.error("Failed to load profile");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size must be less than 5MB");
+      return;
+    }
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      toast.error("Please upload a valid image file (JPEG, PNG, WEBP, or GIF)");
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Delete old avatar if exists
+      if (profile.avatar_url) {
+        const oldPath = profile.avatar_url.split('/').pop();
+        if (oldPath) {
+          await supabase.storage
+            .from('avatars')
+            .remove([`${user.id}/${oldPath}`]);
+        }
+      }
+
+      // Upload new avatar
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Update profile
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .upsert({
+          user_id: user.id,
+          full_name: profile.full_name,
+          avatar_url: publicUrl,
+          updated_at: new Date().toISOString()
+        });
+
+      if (updateError) throw updateError;
+
+      setProfile({ ...profile, avatar_url: publicUrl });
+      toast.success("Profile picture updated successfully!");
+    } catch (error: any) {
+      console.error("Error uploading file:", error);
+      toast.error(error.message || "Failed to upload profile picture");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -102,16 +174,36 @@ const Profile = () => {
 
       <Card className="shadow-lg border-border/40">
         <CardHeader>
-          <div className="flex items-center gap-6">
-            <Avatar className="h-24 w-24 border-2 border-primary/20">
-              <AvatarImage src={profile.avatar_url} alt={profile.full_name} />
-              <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-                {initials || <User className="h-8 w-8" />}
-              </AvatarFallback>
-            </Avatar>
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
+            <div className="relative group">
+              <Avatar className="h-24 w-24 border-2 border-primary/20">
+                <AvatarImage src={profile.avatar_url} alt={profile.full_name} />
+                <AvatarFallback className="text-2xl bg-primary/10 text-primary">
+                  {initials || <User className="h-8 w-8" />}
+                </AvatarFallback>
+              </Avatar>
+              <label 
+                htmlFor="avatar-upload" 
+                className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 rounded-full cursor-pointer transition-opacity"
+              >
+                {uploading ? (
+                  <Loader2 className="h-6 w-6 text-white animate-spin" />
+                ) : (
+                  <Upload className="h-6 w-6 text-white" />
+                )}
+              </label>
+              <input
+                id="avatar-upload"
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                onChange={handleFileUpload}
+                disabled={uploading}
+                className="hidden"
+              />
+            </div>
             <div className="flex-1">
               <CardTitle className="text-2xl">Your Profile</CardTitle>
-              <CardDescription>Update your personal information</CardDescription>
+              <CardDescription>Update your personal information and profile picture</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -149,7 +241,7 @@ const Profile = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="avatarUrl">Avatar URL</Label>
+              <Label htmlFor="avatarUrl">Avatar URL (Optional)</Label>
               <Input
                 id="avatarUrl"
                 type="url"
@@ -158,7 +250,7 @@ const Profile = () => {
                 onChange={(e) => setProfile({ ...profile, avatar_url: e.target.value })}
               />
               <p className="text-xs text-muted-foreground">
-                Provide a URL to your profile picture
+                Or provide a URL to your profile picture
               </p>
             </div>
 

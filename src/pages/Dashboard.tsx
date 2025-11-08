@@ -166,7 +166,7 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl md:text-3xl font-bold">₹{stats.totalExpenses.toFixed(2)}</div>
+            <div className="text-2xl md:text-3xl font-bold">${stats.totalExpenses.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground mt-1">{stats.expenseCount} transactions</p>
           </CardContent>
         </Card>
@@ -179,7 +179,7 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl md:text-3xl font-bold">₹{stats.monthlyExpenses.toFixed(2)}</div>
+            <div className="text-2xl md:text-3xl font-bold">${stats.monthlyExpenses.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground mt-1">Current month spending</p>
           </CardContent>
         </Card>
@@ -192,7 +192,7 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl md:text-3xl font-bold">₹{stats.totalBudget.toFixed(2)}</div>
+            <div className="text-2xl md:text-3xl font-bold">${stats.totalBudget.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground mt-1">Total allocated</p>
           </CardContent>
         </Card>
@@ -237,7 +237,7 @@ const Dashboard = () => {
                     </p>
                   </div>
                   <div className="text-right ml-4">
-                    <p className="font-bold text-lg">₹{Number(expense.amount).toFixed(2)}</p>
+                    <p className="font-bold text-lg">${Number(expense.amount).toFixed(2)}</p>
                   </div>
                 </div>
               ))}
@@ -264,13 +264,13 @@ const Dashboard = () => {
                     cx="50%"
                     cy="50%"
                     outerRadius={100}
-                    label={(entry) => `${entry.name}: ₹${entry.value.toFixed(0)}`}
+                    label={(entry) => `${entry.name}: $${entry.value.toFixed(0)}`}
                   >
                     {categoryData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => `₹${value.toFixed(2)}`} />
+                  <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
                 </PieChart>
               </ResponsiveContainer>
             </CardContent>
@@ -299,7 +299,7 @@ const Dashboard = () => {
                       border: "1px solid hsl(var(--border))",
                       borderRadius: "var(--radius)"
                     }}
-                    formatter={(value: number) => `₹${value.toFixed(2)}`}
+                    formatter={(value: number) => `$${value.toFixed(2)}`}
                   />
                   <Legend />
                   <Bar dataKey="budget" fill="hsl(var(--primary))" name="Budget" radius={[8, 8, 0, 0]} />
@@ -325,9 +325,9 @@ const Dashboard = () => {
                   <span className="text-sm font-semibold">{item.category}</span>
                   <span className="text-sm font-mono">
                     <span className={item.percentage > 100 ? "text-destructive" : item.percentage > 80 ? "text-warning" : "text-success"}>
-                      ₹{item.spent.toFixed(2)}
+                      ${item.spent.toFixed(2)}
                     </span>
-                    <span className="text-muted-foreground"> / ₹{item.budget.toFixed(2)}</span>
+                    <span className="text-muted-foreground"> / ${item.budget.toFixed(2)}</span>
                   </span>
                 </div>
                 <Progress 
@@ -346,7 +346,7 @@ const Dashboard = () => {
                     {item.percentage <= 80 && " - Good"}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    ₹{(item.budget - item.spent).toFixed(2)} remaining
+                    ${(item.budget - item.spent).toFixed(2)} remaining
                   </p>
                 </div>
               </div>

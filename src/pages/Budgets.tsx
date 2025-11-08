@@ -264,11 +264,11 @@ const Budgets = () => {
             <CardContent className="space-y-3">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Spent</span>
-                <span className="font-bold text-lg">₹{item.spent.toFixed(2)}</span>
+                <span className="font-bold text-lg">${item.spent.toFixed(2)}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Budget</span>
-                <span className="font-semibold">₹{item.budget.toFixed(2)}</span>
+                <span className="font-semibold">${item.budget.toFixed(2)}</span>
               </div>
               <Progress value={Math.min(item.percentage, 100)} className="h-2.5" />
               <div className="flex items-center justify-between">
@@ -279,7 +279,7 @@ const Budgets = () => {
                   {item.percentage <= 80 && " - Good"}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  ₹{Math.max(0, item.budget - item.spent).toFixed(0)} left
+                  ${Math.max(0, item.budget - item.spent).toFixed(0)} left
                 </p>
               </div>
             </CardContent>
