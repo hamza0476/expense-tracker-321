@@ -1,4 +1,4 @@
-import { LayoutDashboard, PlusCircle, Wallet, Search, UserCircle, TrendingUp } from "lucide-react";
+import { LayoutDashboard, PlusCircle, Wallet, Search, UserCircle, TrendingUp, Repeat, Bot, BarChart3, Download } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -19,6 +19,13 @@ const menuItems = [
   { title: "Add Expense", url: "/add-expense", icon: PlusCircle },
   { title: "Expenses", url: "/expenses", icon: Search },
   { title: "Budgets", url: "/budgets", icon: Wallet },
+  { title: "Recurring", url: "/recurring", icon: Repeat },
+];
+
+const aiMenuItems = [
+  { title: "AI Assistant", url: "/ai-assistant", icon: Bot },
+  { title: "Analytics", url: "/analytics", icon: BarChart3 },
+  { title: "Export Data", url: "/export", icon: Download },
 ];
 
 export function AppSidebar() {
@@ -45,7 +52,7 @@ export function AppSidebar() {
         
         <SidebarGroup>
           <SidebarGroupLabel className="text-sidebar-foreground/70 text-xs uppercase tracking-wider px-4 py-2">
-            Navigation
+            Main
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -55,6 +62,32 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       end
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg"
+                      activeClassName="bg-sidebar-accent text-primary font-semibold shadow-lg shadow-primary/10"
+                    >
+                      <item.icon className="h-5 w-5 flex-shrink-0" />
+                      {open && <span className="truncate">{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <Separator className="bg-sidebar-border my-2" />
+
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-sidebar-foreground/70 text-xs uppercase tracking-wider px-4 py-2">
+            AI Tools
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {aiMenuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild className="hover:bg-sidebar-accent/80 transition-all duration-200">
+                    <NavLink
+                      to={item.url}
                       className="flex items-center gap-3 px-4 py-3 rounded-lg"
                       activeClassName="bg-sidebar-accent text-primary font-semibold shadow-lg shadow-primary/10"
                     >

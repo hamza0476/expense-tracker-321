@@ -10,6 +10,10 @@ import AddExpense from "./pages/AddExpense";
 import Expenses from "./pages/Expenses";
 import Budgets from "./pages/Budgets";
 import Profile from "./pages/Profile";
+import RecurringExpenses from "./pages/RecurringExpenses";
+import AIAssistant from "./pages/AIAssistant";
+import Analytics from "./pages/Analytics";
+import DataExport from "./pages/DataExport";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +30,10 @@ const App = () => (
           <Route path="/add-expense" element={<Layout><AddExpense /></Layout>} />
           <Route path="/expenses" element={<Layout><Expenses /></Layout>} />
           <Route path="/budgets" element={<Layout><Budgets /></Layout>} />
+          <Route path="/recurring" element={<Layout><RecurringExpenses /></Layout>} />
+          <Route path="/ai-assistant" element={<Layout><AIAssistant /></Layout>} />
+          <Route path="/analytics" element={<Layout><Analytics /></Layout>} />
+          <Route path="/export" element={<Layout><DataExport /></Layout>} />
           <Route path="/profile" element={<Layout><Profile /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

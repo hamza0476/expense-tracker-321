@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from "@/lib/categories";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -17,6 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 const AddExpense = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
   const [formData, setFormData] = useState({
     amount: "",
     category: "",
@@ -26,6 +27,45 @@ const AddExpense = () => {
     vendor: "",
     notes: ""
   });
+
+  const handleAICategorize = async () => {
+    if (!formData.description && !formData.vendor) {
+      toast.error("Please add a description or vendor first");
+      return;
+    }
+
+    setAiLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-categorize-expense`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            description: formData.description,
+            amount: formData.amount,
+            vendor: formData.vendor,
+          }),
+        }
+      );
+
+      if (!response.ok) throw new Error('AI categorization failed');
+
+      const { category } = await response.json();
+      setFormData({ ...formData, category });
+      toast.success(`AI suggested: ${category}`);
+    } catch (error: any) {
+      toast.error(error.message || "AI categorization failed");
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,7 +130,20 @@ const AddExpense = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="category">Category *</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="category">Category *</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleAICategorize}
+                    disabled={aiLoading}
+                    className="h-8 gap-1 text-xs"
+                  >
+                    <Sparkles className="h-3 w-3" />
+                    {aiLoading ? "Suggesting..." : "AI Suggest"}
+                  </Button>
+                </div>
                 <Select
                   value={formData.category}
                   onValueChange={(value) => setFormData({ ...formData, category: value })}
