@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/core';
 
 const config: CapacitorConfig = {
-  appId: 'com.hamza.expensetracker.v2',
+  appId: 'com.hamza.expensetracker',
   appName: 'ExpenseWiz',
   webDir: 'dist',
   server: {
