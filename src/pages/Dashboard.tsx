@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { DollarSign, TrendingUp, Calendar, Wallet } from "lucide-react";
+import { CurrencySelector } from "@/components/CurrencySelector";
 import { EXPENSE_CATEGORIES, getCategoryColor } from "@/lib/categories";
 import { format, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -157,16 +158,24 @@ const Dashboard = () => {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-            <span className="mr-2">🏠</span>
-            <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-              Dashboard
-            </span>
-          </h2>
-          <p className="text-muted-foreground">Overview of your expenses and budgets</p>
+        <div className="flex items-center justify-between w-full md:w-auto gap-3">
+          <div>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+              <span className="mr-2">🏠</span>
+              <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+                Dashboard
+              </span>
+            </h2>
+            <p className="text-muted-foreground">Overview of your expenses and budgets</p>
+          </div>
+          <div className="md:hidden">
+            <CurrencySelector />
+          </div>
         </div>
-        <div className="flex flex-col md:flex-row gap-2">
+        <div className="flex flex-col md:flex-row gap-2 items-start md:items-center">
+          <div className="hidden md:block">
+            <CurrencySelector />
+          </div>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -339,8 +348,11 @@ const Dashboard = () => {
                     nameKey="name"
                     cx="50%"
                     cy="50%"
-                    outerRadius={100}
-                    label={(entry) => `${entry.name}: $${entry.value.toFixed(0)}`}
+                  outerRadius={100}
+                    label={(entry) => {
+                      const name = entry.name.length > 8 ? entry.name.substring(0, 8) + '...' : entry.name;
+                      return `${name}: $${entry.value.toFixed(0)}`;
+                    }}
                   >
                     {categoryData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from "@/lib/categories";
-import { CURRENCIES, formatCurrency } from "@/lib/currencies";
 import { CalendarIcon, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -20,6 +19,7 @@ const AddExpense = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
+  const [defaultCurrency, setDefaultCurrency] = useState("USD");
   const [formData, setFormData] = useState({
     amount: "",
     category: "",
@@ -27,9 +27,25 @@ const AddExpense = () => {
     date: new Date(),
     paymentMethod: "",
     vendor: "",
-    notes: "",
-    currency: "USD"
+    notes: ""
   });
+
+  useEffect(() => {
+    const fetchUserCurrency = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("default_currency")
+          .eq("user_id", user.id)
+          .single();
+        if (profile?.default_currency) {
+          setDefaultCurrency(profile.default_currency);
+        }
+      }
+    };
+    fetchUserCurrency();
+  }, []);
 
   const handleAICategorize = async () => {
     if (!formData.description && !formData.vendor) {
@@ -88,7 +104,7 @@ const AddExpense = () => {
           payment_method: formData.paymentMethod,
           vendor: formData.vendor,
           notes: formData.notes,
-          currency: formData.currency,
+          currency: defaultCurrency,
           original_amount: parseFloat(formData.amount),
           exchange_rate: 1.0
         }
@@ -128,36 +144,15 @@ const AddExpense = () => {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="amount">Amount *</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="amount"
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={formData.amount}
-                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                    required
-                    className="flex-1"
-                  />
-                  <Select
-                    value={formData.currency}
-                    onValueChange={(value) => setFormData({ ...formData, currency: value })}
-                  >
-                    <SelectTrigger className="w-[120px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CURRENCIES.map((currency) => (
-                        <SelectItem key={currency.code} value={currency.code}>
-                          <span className="flex items-center gap-2">
-                            <span>{currency.flag}</span>
-                            <span>{currency.code}</span>
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Input
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={formData.amount}
+                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                  required
+                />
               </div>
 
               <div className="space-y-2">

@@ -32,6 +32,8 @@ const Budgets = () => {
   const [spending, setSpending] = useState<CategorySpending[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [totalBudget, setTotalBudget] = useState(0);
+  const [totalSpent, setTotalSpent] = useState(0);
   const [formData, setFormData] = useState({
     category: "",
     amount: "",
@@ -41,6 +43,29 @@ const Budgets = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const handleResetBudgets = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const currentDate = new Date();
+      const { error } = await supabase
+        .from("budgets")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("period", "monthly")
+        .eq("year", currentDate.getFullYear())
+        .eq("month", currentDate.getMonth() + 1);
+
+      if (error) throw error;
+
+      toast.success("All budgets reset successfully!");
+      fetchData();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to reset budgets");
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -85,6 +110,12 @@ const Budgets = () => {
         }));
 
         setSpending(spendingData);
+        
+        // Calculate totals
+        const totalBudgetAmount = budgetsData.reduce((sum, b) => sum + Number(b.amount), 0);
+        const totalSpentAmount = spendingData.reduce((sum, s) => sum + s.spent, 0);
+        setTotalBudget(totalBudgetAmount);
+        setTotalSpent(totalSpentAmount);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -155,19 +186,67 @@ const Budgets = () => {
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
             <span className="mr-2">🎯</span>
-            <span className="bg-gradient-to-r from-primary via-warning to-accent bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
               Budgets
             </span>
           </h2>
-          <p className="text-muted-foreground">Set limits and track your spending</p>
+          <p className="text-muted-foreground">Set spending limits for different categories</p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)} className="gap-2 shadow-lg">
-          <Plus className="h-4 w-4" />
-          {showForm ? "Cancel" : "Add Budget"}
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleResetBudgets} className="gap-2">
+            Reset All
+          </Button>
+          <Button onClick={() => setShowForm(!showForm)} className="gap-2 shadow-lg">
+            <Plus className="h-4 w-4" />
+            {showForm ? "Cancel" : "Add Budget"}
+          </Button>
+        </div>
       </div>
+
+      {/* Budget Summary Metrics */}
+      {budgets.length > 0 && (
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-3">
+          <Card className="hover-scale border-border/40 bg-gradient-to-br from-card to-card/50 shadow-lg">
+            <CardHeader className="pb-2 px-3 pt-3">
+              <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+                <span className="text-base">💰</span> <span>Total Budget</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-3 pb-3">
+              <div className="text-xl font-bold text-primary">${totalBudget.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground mt-0.5">This month</p>
+            </CardContent>
+          </Card>
+
+          <Card className="hover-scale border-border/40 bg-gradient-to-br from-card to-card/50 shadow-lg">
+            <CardHeader className="pb-2 px-3 pt-3">
+              <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+                <span className="text-base">💸</span> <span>Total Spent</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-3 pb-3">
+              <div className="text-xl font-bold text-accent">${totalSpent.toFixed(2)}</div>
+              <p className="text-[10px] text-muted-foreground mt-0.5">This month</p>
+            </CardContent>
+          </Card>
+
+          <Card className="hover-scale border-border/40 bg-gradient-to-br from-card to-card/50 shadow-lg col-span-2 lg:col-span-1">
+            <CardHeader className="pb-2 px-3 pt-3">
+              <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+                <span className="text-base">📊</span> <span>Usage</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-3 pb-3">
+              <div className="text-xl font-bold text-success">
+                {totalBudget > 0 ? ((totalSpent / totalBudget) * 100).toFixed(1) : 0}%
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Of total budget</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {showForm && (
         <Card className="shadow-xl border-border/40 bg-gradient-to-br from-card to-card/50">
