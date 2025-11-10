@@ -108,52 +108,52 @@ const Analytics = () => {
   const stats = getStats();
 
   return (
-    <div className="p-4 md:p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-4">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold">Enhanced Analytics</h1>
+        <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+          📊 Analytics Dashboard
+        </h1>
         <p className="text-muted-foreground mt-1">Visual insights and spending trends</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Card className="p-4 md:p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Total Expenses</p>
-              <p className="text-2xl md:text-3xl font-bold">${stats.total.toFixed(2)}</p>
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+        <Card className="p-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">💰</span>
+              <p className="text-xs text-muted-foreground">Total</p>
             </div>
-            <DollarSign className="h-8 w-8 text-primary" />
+            <p className="text-xl font-bold text-primary">${stats.total.toFixed(2)}</p>
           </div>
         </Card>
 
-        <Card className="p-4 md:p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Average Expense</p>
-              <p className="text-2xl md:text-3xl font-bold">${stats.avg.toFixed(2)}</p>
+        <Card className="p-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">📈</span>
+              <p className="text-xs text-muted-foreground">Average</p>
             </div>
-            <Calendar className="h-8 w-8 text-primary" />
+            <p className="text-xl font-bold text-accent">${stats.avg.toFixed(2)}</p>
           </div>
         </Card>
 
-        <Card className="p-4 md:p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Monthly Trend</p>
-              <p className={`text-2xl md:text-3xl font-bold ${stats.trend >= 0 ? 'text-red-500' : 'text-green-500'}`}>
-                {stats.trend >= 0 ? '+' : ''}{stats.trend.toFixed(1)}%
-              </p>
+        <Card className="p-3 col-span-2 lg:col-span-1">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">{stats.trend >= 0 ? '📉' : '📊'}</span>
+              <p className="text-xs text-muted-foreground">Trend</p>
             </div>
-            {stats.trend >= 0 ? (
-              <TrendingUp className="h-8 w-8 text-red-500" />
-            ) : (
-              <TrendingDown className="h-8 w-8 text-green-500" />
-            )}
+            <p className={`text-xl font-bold ${stats.trend >= 0 ? 'text-destructive' : 'text-success'}`}>
+              {stats.trend >= 0 ? '+' : ''}{stats.trend.toFixed(1)}%
+            </p>
           </div>
         </Card>
       </div>
 
       <Card className="p-4 md:p-6">
-        <h2 className="text-xl font-bold mb-4">Monthly Spending Trend</h2>
+        <h2 className="text-lg font-bold mb-3 text-primary flex items-center gap-2">
+          <span>📅</span> Monthly Spending Trend
+        </h2>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={monthlyTrend}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -167,7 +167,9 @@ const Analytics = () => {
       </Card>
 
       <Card className="p-4 md:p-6">
-        <h2 className="text-xl font-bold mb-4">Spending by Category</h2>
+        <h2 className="text-lg font-bold mb-3 text-accent flex items-center gap-2">
+          <span>🏷️</span> Spending by Category
+        </h2>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={categoryTrend}>
             <CartesianGrid strokeDasharray="3 3" />

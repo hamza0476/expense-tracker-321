@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Wallet, LogOut, Menu } from "lucide-react";
 import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
+import { FloatingAIChat } from "@/components/FloatingAIChat";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AppSidebar } from "@/components/AppSidebar";
 
@@ -94,6 +95,9 @@ const Layout = ({ children }: LayoutProps) => {
 
       {/* Bottom Navigation - Mobile Only */}
       <BottomNav />
+      
+      {/* Floating AI Assistant */}
+      <FloatingAIChat />
     </div>
   );
 };

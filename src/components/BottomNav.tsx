@@ -1,13 +1,13 @@
 import { NavLink } from "@/components/NavLink";
-import { Home, Wallet, PlusCircle, BarChart3, UserCircle } from "lucide-react";
+import { Home, Wallet, PlusCircle, BarChart3, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { title: "Home", url: "/", icon: Home },
-  { title: "Expenses", url: "/expenses", icon: Wallet },
+  { title: "Budgets", url: "/budgets", icon: Target },
   { title: "Add", url: "/add-expense", icon: PlusCircle, isSpecial: true },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
-  { title: "Profile", url: "/profile", icon: UserCircle },
+  { title: "Expenses", url: "/expenses", icon: Wallet },
 ];
 
 export const BottomNav = () => {

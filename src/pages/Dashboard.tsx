@@ -146,8 +146,8 @@ const Dashboard = () => {
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
         <div>
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Dashboard
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+            🏠 Dashboard
           </h2>
           <p className="text-muted-foreground">Overview of your expenses and budgets</p>
         </div>
@@ -160,55 +160,51 @@ const Dashboard = () => {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="hover-scale border-border/40 bg-gradient-to-br from-card to-card/50 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <DollarSign className="h-5 w-5 text-primary" />
-            </div>
+            <CardTitle className="text-sm font-medium flex items-center gap-1">
+              <span>💸</span> Total
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl md:text-3xl font-bold">${stats.totalExpenses.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-primary">${stats.totalExpenses.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground mt-1">{stats.expenseCount} transactions</p>
           </CardContent>
         </Card>
 
         <Card className="hover-scale border-border/40 bg-gradient-to-br from-card to-card/50 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">This Month</CardTitle>
-            <div className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center">
-              <Calendar className="h-5 w-5 text-accent" />
-            </div>
+            <CardTitle className="text-sm font-medium flex items-center gap-1">
+              <span>📆</span> Month
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl md:text-3xl font-bold">${stats.monthlyExpenses.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground mt-1">Current month spending</p>
+            <div className="text-2xl font-bold text-accent">${stats.monthlyExpenses.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground mt-1">Current spending</p>
           </CardContent>
         </Card>
 
         <Card className="hover-scale border-border/40 bg-gradient-to-br from-card to-card/50 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Budget</CardTitle>
-            <div className="h-10 w-10 rounded-full bg-warning/10 flex items-center justify-center">
-              <Wallet className="h-5 w-5 text-warning" />
-            </div>
+            <CardTitle className="text-sm font-medium flex items-center gap-1">
+              <span>🎯</span> Budget
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl md:text-3xl font-bold">${stats.totalBudget.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-warning">${stats.totalBudget.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground mt-1">Total allocated</p>
           </CardContent>
         </Card>
 
         <Card className="hover-scale border-border/40 bg-gradient-to-br from-card to-card/50 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Budget Usage</CardTitle>
-            <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-success" />
-            </div>
+            <CardTitle className="text-sm font-medium flex items-center gap-1">
+              <span>📊</span> Usage
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl md:text-3xl font-bold">
+            <div className="text-2xl font-bold text-success">
               {stats.totalBudget > 0 ? ((stats.monthlyExpenses / stats.totalBudget) * 100).toFixed(1) : 0}%
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Of total budget</p>
+            <p className="text-xs text-muted-foreground mt-1">Of budget</p>
           </CardContent>
         </Card>
       </div>
@@ -217,9 +213,9 @@ const Dashboard = () => {
       {recentExpenses.length > 0 && (
         <Card className="border-border/40 shadow-lg">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Recent Transactions
-              <span className="text-sm font-normal text-muted-foreground">Last 5 expenses</span>
+            <CardTitle className="flex items-center justify-between text-primary">
+              <span className="flex items-center gap-2">🧾 Recent Transactions</span>
+              <span className="text-sm font-normal text-muted-foreground">Last 5</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -251,7 +247,9 @@ const Dashboard = () => {
         {categoryData.length > 0 && (
           <Card className="border-border/40 shadow-lg">
             <CardHeader>
-              <CardTitle>Spending by Category</CardTitle>
+              <CardTitle className="text-accent flex items-center gap-2">
+                🏷️ Spending by Category
+              </CardTitle>
               <p className="text-sm text-muted-foreground">This month's distribution</p>
             </CardHeader>
             <CardContent>
@@ -280,7 +278,9 @@ const Dashboard = () => {
         {budgetComparison.length > 0 && (
           <Card className="border-border/40 shadow-lg">
             <CardHeader>
-              <CardTitle>Budget vs Actual</CardTitle>
+              <CardTitle className="text-primary flex items-center gap-2">
+                💰 Budget vs Actual
+              </CardTitle>
               <p className="text-sm text-muted-foreground">Category comparison</p>
             </CardHeader>
             <CardContent>
@@ -315,7 +315,9 @@ const Dashboard = () => {
       {budgetComparison.length > 0 && (
         <Card className="border-border/40 shadow-lg">
           <CardHeader>
-            <CardTitle>Budget Progress Details</CardTitle>
+            <CardTitle className="text-success flex items-center gap-2">
+              🎯 Budget Progress Details
+            </CardTitle>
             <p className="text-sm text-muted-foreground">Track your spending limits</p>
           </CardHeader>
           <CardContent className="space-y-4">

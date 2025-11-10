@@ -6,7 +6,8 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
+    /* Vibrant Expense Tracker Theme */
+    --background: 210 20% 98%;
     --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
@@ -15,7 +16,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 217 91% 60%;
+    --primary: 262 83% 58%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96%;
@@ -24,10 +25,10 @@
     --muted: 210 40% 96%;
     --muted-foreground: 215 16% 47%;
 
-    --accent: 168 76% 42%;
+    --accent: 173 80% 40%;
     --accent-foreground: 0 0% 100%;
 
-    --success: 142 76% 45%;
+    --success: 142 76% 36%;
     --success-foreground: 0 0% 100%;
 
     --warning: 38 92% 50%;
@@ -38,42 +39,42 @@
 
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 217 91% 60%;
+    --ring: 262 83% 58%;
 
     --radius: 0.75rem;
 
     --sidebar-background: 240 10% 5%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary: 262 83% 58%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 4% 12%;
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 240 4% 12%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-ring: 262 83% 58%;
 
-    --chart-1: 217 91% 60%;
-    --chart-2: 168 76% 42%;
+    --chart-1: 262 83% 58%;
+    --chart-2: 173 80% 40%;
     --chart-3: 38 92% 50%;
     --chart-4: 280 80% 65%;
     --chart-5: 340 82% 52%;
     --chart-6: 199 89% 48%;
-    --chart-7: 142 76% 45%;
+    --chart-7: 142 76% 36%;
     --chart-8: 24 95% 53%;
     --chart-9: 271 81% 56%;
     --chart-10: 173 80% 40%;
     --chart-11: 43 74% 49%;
     --chart-12: 262 52% 47%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 75%));
-    --gradient-accent: linear-gradient(135deg, hsl(168 76% 42%), hsl(168 76% 55%));
+    --gradient-primary: linear-gradient(135deg, hsl(262 83% 58%), hsl(262 83% 75%));
+    --gradient-accent: linear-gradient(135deg, hsl(173 80% 40%), hsl(173 80% 55%));
     --gradient-card: linear-gradient(135deg, hsl(240 10% 6%), hsl(240 10% 8%));
-    --gradient-hero: linear-gradient(135deg, hsl(217 91% 60% / 0.1), hsl(168 76% 42% / 0.1));
+    --gradient-hero: linear-gradient(135deg, hsl(262 83% 58% / 0.1), hsl(173 80% 40% / 0.1));
     
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
     --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.6);
-    --shadow-glow: 0 0 40px hsl(217 91% 60% / 0.3);
+    --shadow-glow: 0 0 40px hsl(262 83% 58% / 0.3);
     
     --transition-base: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -89,7 +90,7 @@
     --popover: 224 47% 14%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 217 91% 60%;
+    --primary: 262 83% 58%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 13% 18%;
@@ -98,15 +99,21 @@
     --muted: 220 13% 18%;
     --muted-foreground: 215 16% 65%;
 
-    --accent: 168 76% 42%;
+    --accent: 173 80% 40%;
     --accent-foreground: 0 0% 100%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 47% 11%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 220 13% 18%;
     --input: 220 13% 18%;
-    --ring: 217 91% 60%;
+    --ring: 262 83% 58%;
   }
 }
 

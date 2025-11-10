@@ -155,8 +155,8 @@ const Budgets = () => {
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Budgets
+          <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary via-warning to-accent bg-clip-text text-transparent">
+            🎯 Budgets
           </h2>
           <p className="text-muted-foreground">Set limits and track your spending</p>
         </div>
