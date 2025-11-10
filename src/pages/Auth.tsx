@@ -21,6 +21,14 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        navigate("/");
+      }
+    });
+
+    // THEN check for existing session
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -28,6 +36,8 @@ const Auth = () => {
       }
     };
     checkUser();
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,13 +57,16 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password
         });
         if (error) throw error;
-        toast.success("Logged in successfully!");
-        navigate("/");
+        
+        if (data?.session) {
+          toast.success("Logged in successfully!");
+          // Navigation will be handled by onAuthStateChange
+        }
       } else {
         const redirectUrl = `${window.location.origin}/`;
         const { data: authData, error: authError } = await supabase.auth.signUp({

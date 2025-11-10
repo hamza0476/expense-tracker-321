@@ -110,8 +110,11 @@ const Analytics = () => {
   return (
     <div className="p-4 md:p-8 space-y-4">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-          📊 Analytics Dashboard
+        <h1 className="text-2xl md:text-3xl font-bold">
+          <span className="mr-2">📊</span>
+          <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+            Analytics Dashboard
+          </span>
         </h1>
         <p className="text-muted-foreground mt-1">Visual insights and spending trends</p>
       </div>
@@ -150,9 +153,10 @@ const Analytics = () => {
         </Card>
       </div>
 
-      <Card className="p-4 md:p-6">
-        <h2 className="text-lg font-bold mb-3 text-primary flex items-center gap-2">
-          <span>📅</span> Monthly Spending Trend
+        <Card className="p-4 md:p-6">
+        <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
+          <span>📅</span>
+          <span className="text-primary">Monthly Spending Trend</span>
         </h2>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={monthlyTrend}>
@@ -167,8 +171,9 @@ const Analytics = () => {
       </Card>
 
       <Card className="p-4 md:p-6">
-        <h2 className="text-lg font-bold mb-3 text-accent flex items-center gap-2">
-          <span>🏷️</span> Spending by Category
+        <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
+          <span>🏷️</span>
+          <span className="text-accent">Spending by Category</span>
         </h2>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={categoryTrend}>

@@ -5,7 +5,12 @@ import { Progress } from "@/components/ui/progress";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { DollarSign, TrendingUp, Calendar, Wallet } from "lucide-react";
 import { EXPENSE_CATEGORIES, getCategoryColor } from "@/lib/categories";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { format, startOfMonth, endOfMonth, startOfDay, endOfDay } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { CalendarIcon } from "lucide-react";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 
 interface Expense {
   id: string;
@@ -24,6 +29,10 @@ const Dashboard = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
+    from: startOfMonth(new Date()),
+    to: endOfMonth(new Date())
+  });
   const [stats, setStats] = useState({
     totalExpenses: 0,
     monthlyExpenses: 0,
@@ -33,7 +42,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [dateRange]);
 
   const fetchData = async () => {
     try {
@@ -64,18 +73,21 @@ const Dashboard = () => {
         setExpenses(expensesData);
         
         const total = expensesData.reduce((sum, exp) => sum + Number(exp.amount), 0);
-        const monthlyTotal = expensesData
+        const filteredTotal = expensesData
           .filter(exp => {
             const expDate = new Date(exp.date);
-            return expDate >= monthStart && expDate <= monthEnd;
+            return expDate >= dateRange.from && expDate <= dateRange.to;
           })
           .reduce((sum, exp) => sum + Number(exp.amount), 0);
 
         setStats({
           totalExpenses: total,
-          monthlyExpenses: monthlyTotal,
+          monthlyExpenses: filteredTotal,
           totalBudget: budgetsData?.reduce((sum, b) => sum + Number(b.amount), 0) || 0,
-          expenseCount: expensesData.length
+          expenseCount: expensesData.filter(exp => {
+            const expDate = new Date(exp.date);
+            return expDate >= dateRange.from && expDate <= dateRange.to;
+          }).length
         });
       }
 
@@ -144,67 +156,106 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-            🏠 Dashboard
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+            <span className="mr-2">🏠</span>
+            <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+              Dashboard
+            </span>
           </h2>
           <p className="text-muted-foreground">Overview of your expenses and budgets</p>
         </div>
-        <div className="text-sm text-muted-foreground">
-          {format(new Date(), "EEEE, MMMM d, yyyy")}
-        </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full md:w-[280px] justify-start text-left font-normal",
+                !dateRange && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {dateRange?.from ? (
+                dateRange.to ? (
+                  <>
+                    {format(dateRange.from, "LLL dd, y")} -{" "}
+                    {format(dateRange.to, "LLL dd, y")}
+                  </>
+                ) : (
+                  format(dateRange.from, "LLL dd, y")
+                )
+              ) : (
+                <span>Pick a date range</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <CalendarComponent
+              initialFocus
+              mode="range"
+              defaultMonth={dateRange?.from}
+              selected={{ from: dateRange.from, to: dateRange.to }}
+              onSelect={(range: any) => {
+                if (range?.from && range?.to) {
+                  setDateRange({ from: startOfDay(range.from), to: endOfDay(range.to) });
+                }
+              }}
+              numberOfMonths={2}
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         <Card className="hover-scale border-border/40 bg-gradient-to-br from-card to-card/50 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-1">
-              <span>💸</span> Total
+          <CardHeader className="pb-2 px-3 pt-3">
+            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+              <span className="text-base">💸</span> <span>Total</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">${stats.totalExpenses.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground mt-1">{stats.expenseCount} transactions</p>
+          <CardContent className="px-3 pb-3">
+            <div className="text-xl font-bold text-primary">${stats.totalExpenses.toFixed(2)}</div>
+            <p className="text-[10px] text-muted-foreground mt-0.5">{stats.expenseCount} transactions</p>
           </CardContent>
         </Card>
 
         <Card className="hover-scale border-border/40 bg-gradient-to-br from-card to-card/50 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-1">
-              <span>📆</span> Month
+          <CardHeader className="pb-2 px-3 pt-3">
+            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+              <span className="text-base">📆</span> <span>Period</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-accent">${stats.monthlyExpenses.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground mt-1">Current spending</p>
+          <CardContent className="px-3 pb-3">
+            <div className="text-xl font-bold text-accent">${stats.monthlyExpenses.toFixed(2)}</div>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Selected range</p>
           </CardContent>
         </Card>
 
         <Card className="hover-scale border-border/40 bg-gradient-to-br from-card to-card/50 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-1">
-              <span>🎯</span> Budget
+          <CardHeader className="pb-2 px-3 pt-3">
+            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+              <span className="text-base">🎯</span> <span>Budget</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-warning">${stats.totalBudget.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground mt-1">Total allocated</p>
+          <CardContent className="px-3 pb-3">
+            <div className="text-xl font-bold text-warning">${stats.totalBudget.toFixed(2)}</div>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Total allocated</p>
           </CardContent>
         </Card>
 
         <Card className="hover-scale border-border/40 bg-gradient-to-br from-card to-card/50 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-1">
-              <span>📊</span> Usage
+          <CardHeader className="pb-2 px-3 pt-3">
+            <CardTitle className="text-xs font-medium flex items-center gap-1.5">
+              <span className="text-base">📊</span> <span>Usage</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-success">
+          <CardContent className="px-3 pb-3">
+            <div className="text-xl font-bold text-success">
               {stats.totalBudget > 0 ? ((stats.monthlyExpenses / stats.totalBudget) * 100).toFixed(1) : 0}%
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Of budget</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">Of budget</p>
           </CardContent>
         </Card>
       </div>
@@ -213,8 +264,11 @@ const Dashboard = () => {
       {recentExpenses.length > 0 && (
         <Card className="border-border/40 shadow-lg">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between text-primary">
-              <span className="flex items-center gap-2">🧾 Recent Transactions</span>
+            <CardTitle className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <span>🧾</span>
+                <span className="text-primary">Recent Transactions</span>
+              </span>
               <span className="text-sm font-normal text-muted-foreground">Last 5</span>
             </CardTitle>
           </CardHeader>
@@ -247,8 +301,9 @@ const Dashboard = () => {
         {categoryData.length > 0 && (
           <Card className="border-border/40 shadow-lg">
             <CardHeader>
-              <CardTitle className="text-accent flex items-center gap-2">
-                🏷️ Spending by Category
+              <CardTitle className="flex items-center gap-2">
+                <span>🏷️</span>
+                <span className="text-accent">Spending by Category</span>
               </CardTitle>
               <p className="text-sm text-muted-foreground">This month's distribution</p>
             </CardHeader>
@@ -278,8 +333,9 @@ const Dashboard = () => {
         {budgetComparison.length > 0 && (
           <Card className="border-border/40 shadow-lg">
             <CardHeader>
-              <CardTitle className="text-primary flex items-center gap-2">
-                💰 Budget vs Actual
+              <CardTitle className="flex items-center gap-2">
+                <span>💰</span>
+                <span className="text-primary">Budget vs Actual</span>
               </CardTitle>
               <p className="text-sm text-muted-foreground">Category comparison</p>
             </CardHeader>
@@ -315,8 +371,9 @@ const Dashboard = () => {
       {budgetComparison.length > 0 && (
         <Card className="border-border/40 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-success flex items-center gap-2">
-              🎯 Budget Progress Details
+            <CardTitle className="flex items-center gap-2">
+              <span>🎯</span>
+              <span className="text-success">Budget Progress Details</span>
             </CardTitle>
             <p className="text-sm text-muted-foreground">Track your spending limits</p>
           </CardHeader>
