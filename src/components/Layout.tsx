@@ -1,11 +1,12 @@
-import { ReactNode, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { ReactNode, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/AppSidebar";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { Wallet, LogOut, Menu } from "lucide-react";
 import { toast } from "sonner";
+import { BottomNav } from "@/components/BottomNav";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { AppSidebar } from "@/components/AppSidebar";
 
 interface LayoutProps {
   children: ReactNode;
@@ -13,20 +14,24 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        navigate("/auth");
+        navigate("/splash");
+      } else {
+        setUser(session.user);
       }
     };
     checkUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!session) {
-        navigate("/auth");
+        navigate("/splash");
+      } else {
+        setUser(session.user);
       }
     });
 
@@ -36,40 +41,60 @@ const Layout = ({ children }: LayoutProps) => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     toast.success("Logged out successfully");
-    navigate("/auth");
+    navigate("/splash");
   };
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar />
-        <div className="flex-1 flex flex-col">
-          <header className="h-16 border-b border-border/40 bg-card/30 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between px-4 md:px-6 shadow-sm">
-            <div className="flex items-center gap-3">
-              <SidebarTrigger className="hover:bg-primary/10" />
-              <div>
-                <h1 className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
-                  ExpenseWiz
-                </h1>
-                <p className="hidden sm:block text-xs text-muted-foreground">Smart Expense Management</p>
-              </div>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={handleLogout} 
-              title="Logout"
-              className="hover:bg-destructive/10 hover:text-destructive transition-colors"
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
-          </header>
-          <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto bg-gradient-to-br from-background via-background to-primary/5">
-            {children}
-          </main>
+    <div className="min-h-screen flex flex-col bg-background">
+      {/* Top Header */}
+      <header className="h-14 border-b border-border/50 bg-card/95 backdrop-blur-lg sticky top-0 z-40 flex items-center justify-between px-4 shadow-sm">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
+            <Wallet className="w-5 h-5 text-primary-foreground" strokeWidth={2.5} />
+          </div>
+          <div>
+            <h1 className="text-base font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              ExpenseWiz
+            </h1>
+          </div>
         </div>
-      </div>
-    </SidebarProvider>
+
+        <div className="flex items-center gap-2">
+          {/* Desktop Sidebar Trigger */}
+          <Sheet>
+            <SheetTrigger asChild className="hidden md:flex">
+              <Button variant="ghost" size="icon" className="hover:bg-primary/10">
+                <Menu className="w-5 h-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-64">
+              <AppSidebar />
+            </SheetContent>
+          </Sheet>
+
+          {/* Logout Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLogout}
+            className="hover:bg-destructive/10 hover:text-destructive transition-colors text-xs font-medium"
+          >
+            <LogOut className="w-4 h-4 mr-1" />
+            <span className="hidden sm:inline">Logout</span>
+          </Button>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 pb-20 md:pb-6 overflow-auto bg-gradient-to-br from-background via-background to-primary/5">
+        <div className="container max-w-7xl mx-auto p-4 md:p-6">
+          {children}
+        </div>
+      </main>
+
+      {/* Bottom Navigation - Mobile Only */}
+      <BottomNav />
+    </div>
   );
 };
 
