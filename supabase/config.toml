@@ -1,1 +1,16 @@
 project_id = "yhgvveoyxfacgjootirh"
+
+[functions.ai-categorize-expense]
+verify_jwt = true
+
+[functions.ai-financial-assistant]
+verify_jwt = true
+
+[functions.export-expenses]
+verify_jwt = true
+
+[functions.currency-converter]
+verify_jwt = true
+
+[functions.check-budget-alerts]
+verify_jwt = true

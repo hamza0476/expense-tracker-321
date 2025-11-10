@@ -9,10 +9,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from "@/lib/categories";
+import { CURRENCIES, formatCurrency } from "@/lib/currencies";
 import { CalendarIcon, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { pushNotificationService } from "@/services/pushNotifications";
 
 const AddExpense = () => {
   const navigate = useNavigate();
@@ -25,7 +27,8 @@ const AddExpense = () => {
     date: new Date(),
     paymentMethod: "",
     vendor: "",
-    notes: ""
+    notes: "",
+    currency: "USD"
   });
 
   const handleAICategorize = async () => {
@@ -84,13 +87,20 @@ const AddExpense = () => {
           date: format(formData.date, "yyyy-MM-dd"),
           payment_method: formData.paymentMethod,
           vendor: formData.vendor,
-          notes: formData.notes
+          notes: formData.notes,
+          currency: formData.currency,
+          original_amount: parseFloat(formData.amount),
+          exchange_rate: 1.0
         }
       ]);
 
       if (error) throw error;
 
       toast.success("Expense added successfully!");
+      
+      // Check budget alerts after adding expense
+      pushNotificationService.checkBudgetAlerts(formData.category);
+      
       navigate("/expenses");
     } catch (error: any) {
       toast.error(error.message || "Failed to add expense");
@@ -118,15 +128,36 @@ const AddExpense = () => {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="amount">Amount *</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={formData.amount}
-                  onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                  required
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="amount"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={formData.amount}
+                    onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                    required
+                    className="flex-1"
+                  />
+                  <Select
+                    value={formData.currency}
+                    onValueChange={(value) => setFormData({ ...formData, currency: value })}
+                  >
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CURRENCIES.map((currency) => (
+                        <SelectItem key={currency.code} value={currency.code}>
+                          <span className="flex items-center gap-2">
+                            <span>{currency.flag}</span>
+                            <span>{currency.code}</span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="space-y-2">

@@ -1,19 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, X } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const FloatingAIChat = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleClick = () => {
-    if (isOpen) {
-      setIsOpen(false);
-    } else {
-      navigate("/ai-assistant");
-    }
+    navigate("/ai-assistant");
   };
 
   return (
@@ -27,15 +22,9 @@ export const FloatingAIChat = () => {
           "hover:shadow-primary/50"
         )}
       >
-        {isOpen ? (
-          <X className="h-6 w-6" />
-        ) : (
-          <MessageCircle className="h-6 w-6" />
-        )}
+        <MessageCircle className="h-6 w-6" />
       </Button>
-      {!isOpen && (
-        <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive animate-bounce" />
-      )}
+      <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive animate-bounce" />
     </div>
   );
 };

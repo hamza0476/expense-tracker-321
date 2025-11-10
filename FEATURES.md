@@ -17,6 +17,9 @@ A comprehensive expense tracking application with AI-powered insights and mobile
 - Real-time budget usage visualization
 - Progress bars and charts
 - Budget vs. actual comparisons
+- Smart budget alerts with push notifications
+- Customizable alert thresholds (50%, 80%, 95%)
+- Automatic notification throttling (24h cooldown)
 
 ### 3. Dashboard Analytics
 - Total expense summary
@@ -74,32 +77,55 @@ A comprehensive expense tracking application with AI-powered insights and mobile
 - Date range filtering
 - Includes all expense details
 
-## 🔔 Smart Notifications (Coming Soon)
+## 🔔 Smart Budget Alerts
 
-### 9. Budget Alerts
-- Threshold-based alerts (default 80%)
-- Customizable per category
-- Push notifications on mobile
-- Email notifications
+### 9. Push Notifications for Budget Tracking
+- Real-time budget threshold alerts
+- Customizable thresholds per category (default 80%)
+- Three alert levels:
+  - Warning: 80% of budget reached
+  - Urgent: 90% of budget reached  
+  - Exceeded: Over 100% of budget
+- Native mobile push notifications (iOS & Android)
+- Toast notifications for web/PWA
+- Smart throttling (one notification per 24 hours per category)
+- Automatic checks when adding expenses
+
+## 💱 Multi-Currency Support
+
+### 10. International Expense Tracking
+- Support for 20+ major world currencies
+- Currency flags for visual identification
+- Per-expense currency selection
+- Automatic exchange rate conversion
+- Real-time rates via API (with 24h caching)
+- Default currency preference per user
+- Budget tracking in default currency
+- Original currency preserved on expenses
+- Exchange rate history tracking
 
 ## 📱 Mobile Features
 
-### 10. Native Mobile App (Capacitor)
+### 11. Native Mobile App (Capacitor)
 - iOS and Android support
 - Native performance
 - Offline support
-- Camera integration (planned)
-- Push notifications
+- Camera integration (planned for receipt scanning)
+- Push notifications for budget alerts
 - Touch-optimized UI
+- Bottom navigation bar for easy mobile access
+- Floating AI assistant button
 
 ## 🎨 Design Features
 
 - Dark/Light theme support
 - Responsive design for all screen sizes
-- Mobile-first approach
-- Touch-friendly buttons (44px minimum)
+- Mobile-first Material Design approach
+- Touch-friendly buttons (48dp minimum)
 - Beautiful gradients and animations
-- Intuitive sidebar navigation
+- Intuitive bottom navigation (mobile)
+- Emoji support throughout the app 💰📊🎯
+- Color-coded categories and alerts
 
 ## 🔐 Security
 
@@ -114,31 +140,30 @@ A comprehensive expense tracking application with AI-powered insights and mobile
 1. **Receipt Scanning**
    - Camera integration
    - OCR for receipt data extraction
-   - Automatic expense creation
+   - Automatic expense creation from photos
 
-2. **Budget Alerts**
-   - Real-time notifications
-   - Customizable thresholds
-   - Multiple notification channels
-
-3. **Expense Categories AI Learning**
+2. **Expense Categories AI Learning**
    - Learn from user corrections
-   - Improve categorization over time
+   - Improve categorization accuracy over time
+   - Personalized category suggestions
 
-4. **Expense Splitting**
-   - Split expenses with friends
+3. **Expense Splitting**
+   - Split expenses with friends/family
    - Group expense tracking
-   - Settlement calculations
+   - Automatic settlement calculations
+   - QR code sharing
 
-5. **Multi-Currency Support**
-   - Currency conversion
-   - International expense tracking
-   - Exchange rate tracking
-
-6. **Savings Goals**
+4. **Savings Goals**
    - Set savings targets
-   - Track progress
+   - Track progress visually
    - Goal-based budgeting
+   - Milestone celebrations
+
+5. **Advanced Reporting**
+   - PDF expense reports
+   - Tax-ready exports
+   - Custom date ranges
+   - Category summaries
 
 ## 🛠️ Tech Stack
 
@@ -152,12 +177,13 @@ A comprehensive expense tracking application with AI-powered insights and mobile
 ## 📊 Database Schema
 
 ### Tables
-- **expenses**: User expenses with full details
-- **budgets**: Monthly budget allocations
+- **expenses**: User expenses with currency support and conversion rates
+- **budgets**: Monthly budget allocations by category
 - **recurring_expenses**: Subscription and recurring bill tracking
-- **budget_alerts**: Alert configurations
+- **budget_alerts**: Alert configurations with thresholds
 - **ai_chat_history**: AI assistant conversation history
-- **profiles**: User profile information
+- **profiles**: User profile information with default currency
+- **exchange_rates**: Cached currency exchange rates
 
 ## 🎯 Use Cases
 

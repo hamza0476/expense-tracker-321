@@ -2,12 +2,13 @@ import { ReactNode, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Wallet, LogOut, Menu } from "lucide-react";
+import { Wallet, LogOut, Menu, User } from "lucide-react";
 import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
 import { FloatingAIChat } from "@/components/FloatingAIChat";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AppSidebar } from "@/components/AppSidebar";
+import { pushNotificationService } from "@/services/pushNotifications";
 
 interface LayoutProps {
   children: ReactNode;
@@ -24,6 +25,8 @@ const Layout = ({ children }: LayoutProps) => {
         navigate("/splash");
       } else {
         setUser(session.user);
+        // Initialize push notifications
+        pushNotificationService.initialize();
       }
     };
     checkUser();
@@ -33,6 +36,7 @@ const Layout = ({ children }: LayoutProps) => {
         navigate("/splash");
       } else {
         setUser(session.user);
+        pushNotificationService.initialize();
       }
     });
 
@@ -61,17 +65,16 @@ const Layout = ({ children }: LayoutProps) => {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Desktop Sidebar Trigger */}
-          <Sheet>
-            <SheetTrigger asChild className="hidden md:flex">
-              <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-                <Menu className="w-5 h-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="p-0 w-64">
-              <AppSidebar />
-            </SheetContent>
-          </Sheet>
+          {/* Profile Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/profile")}
+            className="hover:bg-primary/10 hover:text-primary transition-colors text-xs font-medium"
+          >
+            <User className="w-4 h-4 mr-1" />
+            <span className="hidden sm:inline">Profile</span>
+          </Button>
 
           {/* Logout Button */}
           <Button

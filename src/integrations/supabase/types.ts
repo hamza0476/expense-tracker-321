@@ -107,15 +107,42 @@ export type Database = {
         }
         Relationships: []
       }
+      exchange_rates: {
+        Row: {
+          base_currency: string
+          id: string
+          rate: number
+          target_currency: string
+          updated_at: string
+        }
+        Insert: {
+          base_currency: string
+          id?: string
+          rate: number
+          target_currency: string
+          updated_at?: string
+        }
+        Update: {
+          base_currency?: string
+          id?: string
+          rate?: number
+          target_currency?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number
           category: string
           created_at: string
+          currency: string
           date: string
           description: string | null
+          exchange_rate: number | null
           id: string
           notes: string | null
+          original_amount: number | null
           payment_method: string | null
           updated_at: string
           user_id: string
@@ -125,10 +152,13 @@ export type Database = {
           amount: number
           category: string
           created_at?: string
+          currency?: string
           date?: string
           description?: string | null
+          exchange_rate?: number | null
           id?: string
           notes?: string | null
+          original_amount?: number | null
           payment_method?: string | null
           updated_at?: string
           user_id: string
@@ -138,10 +168,13 @@ export type Database = {
           amount?: number
           category?: string
           created_at?: string
+          currency?: string
           date?: string
           description?: string | null
+          exchange_rate?: number | null
           id?: string
           notes?: string | null
+          original_amount?: number | null
           payment_method?: string | null
           updated_at?: string
           user_id?: string
@@ -153,6 +186,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          default_currency: string | null
           full_name: string | null
           id: string
           updated_at: string
@@ -161,6 +195,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          default_currency?: string | null
           full_name?: string | null
           id?: string
           updated_at?: string
@@ -169,6 +204,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          default_currency?: string | null
           full_name?: string | null
           id?: string
           updated_at?: string
