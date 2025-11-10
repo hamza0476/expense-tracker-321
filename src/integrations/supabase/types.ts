@@ -189,6 +189,7 @@ export type Database = {
           default_currency: string | null
           full_name: string | null
           id: string
+          theme: string | null
           updated_at: string
           user_id: string
         }
@@ -198,6 +199,7 @@ export type Database = {
           default_currency?: string | null
           full_name?: string | null
           id?: string
+          theme?: string | null
           updated_at?: string
           user_id: string
         }
@@ -207,6 +209,7 @@ export type Database = {
           default_currency?: string | null
           full_name?: string | null
           id?: string
+          theme?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -263,6 +266,45 @@ export type Database = {
           updated_at?: string
           user_id?: string
           vendor?: string | null
+        }
+        Relationships: []
+      }
+      savings_goals: {
+        Row: {
+          category: string | null
+          created_at: string
+          current_amount: number
+          deadline: string | null
+          description: string | null
+          id: string
+          target_amount: number
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          current_amount?: number
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          target_amount: number
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          current_amount?: number
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          target_amount?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

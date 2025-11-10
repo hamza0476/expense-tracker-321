@@ -1,4 +1,4 @@
-import { LayoutDashboard, PlusCircle, Wallet, Search, UserCircle, TrendingUp, Repeat, Bot, BarChart3, Download } from "lucide-react";
+import { LayoutDashboard, PlusCircle, Wallet, Search, UserCircle, TrendingUp, Repeat, Bot, BarChart3, Download, Target } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -25,6 +25,7 @@ const menuItems = [
 const aiMenuItems = [
   { title: "AI Assistant", url: "/ai-assistant", icon: Bot },
   { title: "Analytics", url: "/analytics", icon: BarChart3 },
+  { title: "Savings Goals", url: "/savings-goals", icon: Target },
   { title: "Export Data", url: "/export", icon: Download },
 ];
 

@@ -166,45 +166,68 @@ const Dashboard = () => {
           </h2>
           <p className="text-muted-foreground">Overview of your expenses and budgets</p>
         </div>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full md:w-[280px] justify-start text-left font-normal",
-                !dateRange && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {dateRange?.from ? (
-                dateRange.to ? (
-                  <>
-                    {format(dateRange.from, "LLL dd, y")} -{" "}
-                    {format(dateRange.to, "LLL dd, y")}
-                  </>
-                ) : (
-                  format(dateRange.from, "LLL dd, y")
-                )
-              ) : (
-                <span>Pick a date range</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="end">
-            <CalendarComponent
-              initialFocus
-              mode="range"
-              defaultMonth={dateRange?.from}
-              selected={{ from: dateRange.from, to: dateRange.to }}
-              onSelect={(range: any) => {
-                if (range?.from && range?.to) {
-                  setDateRange({ from: startOfDay(range.from), to: endOfDay(range.to) });
-                }
-              }}
-              numberOfMonths={2}
-            />
-          </PopoverContent>
-        </Popover>
+        <div className="flex flex-col md:flex-row gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full md:w-[200px] justify-start text-left font-normal",
+                  !dateRange.from && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateRange.from ? format(dateRange.from, "LLL dd, y") : "Start date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <CalendarComponent
+                mode="single"
+                selected={dateRange.from}
+                onSelect={(date) => {
+                  if (date) {
+                    setDateRange({ ...dateRange, from: startOfDay(date) });
+                  }
+                }}
+                initialFocus
+                classNames={{
+                  day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                  day_range_middle: "bg-accent/50"
+                }}
+              />
+            </PopoverContent>
+          </Popover>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full md:w-[200px] justify-start text-left font-normal",
+                  !dateRange.to && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {dateRange.to ? format(dateRange.to, "LLL dd, y") : "End date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <CalendarComponent
+                mode="single"
+                selected={dateRange.to}
+                onSelect={(date) => {
+                  if (date) {
+                    setDateRange({ ...dateRange, to: endOfDay(date) });
+                  }
+                }}
+                initialFocus
+                classNames={{
+                  day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                  day_range_middle: "bg-accent/50"
+                }}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
 
       {/* Stats Cards */}

@@ -9,6 +9,7 @@ import { FloatingAIChat } from "@/components/FloatingAIChat";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AppSidebar } from "@/components/AppSidebar";
 import { pushNotificationService } from "@/services/pushNotifications";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface LayoutProps {
   children: ReactNode;
@@ -65,6 +66,9 @@ const Layout = ({ children }: LayoutProps) => {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Theme Toggle */}
+          <ThemeToggle />
+          
           {/* Profile Button */}
           <Button
             variant="ghost"
