@@ -187,3 +187,27 @@ html {
     padding-top: env(safe-area-inset-top);
   }
 }
+
+/* ----- Android WebView Text Rendering Fix ----- */
+html, body, input, button, select, textarea, span, p, div, h1, h2, h3, h4, h5, h6 {
+  -webkit-text-size-adjust: 100% !important;
+  text-size-adjust: 100% !important;
+  font-variant-ligatures: none !important;
+  letter-spacing: 0 !important;
+  word-spacing: 0 !important;
+  font-feature-settings: "kern" off, "liga" off, "clig" off, "calt" off !important;
+}
+
+/* Prevent Android from inserting extra spacing in numbers/dates */
+* {
+  font-variant-numeric: normal !important;
+  font-feature-settings: "tnum" off, "lnum" off !important;
+  font-kerning: none !important;
+}
+
+/* Force normal rendering for all input fields */
+input, textarea {
+  letter-spacing: 0px !important;
+  word-spacing: 0px !important;
+  font-variant-numeric: normal !important;
+}
