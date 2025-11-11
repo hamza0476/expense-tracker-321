@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { TrendingUp, TrendingDown, DollarSign, Calendar } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { getCurrencySymbol } from "@/lib/currencies";
 
 interface Expense {
   amount: number;
@@ -15,9 +16,11 @@ const Analytics = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const [currencySymbol, setCurrencySymbol] = useState("$");
 
   useEffect(() => {
     fetchExpenses();
+    fetchCurrency();
   }, []);
 
   const fetchExpenses = async () => {
@@ -41,6 +44,23 @@ const Analytics = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCurrency = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("default_currency")
+        .eq("user_id", user.id)
+        .single();
+      if (profile?.default_currency) {
+        setCurrencySymbol(getCurrencySymbol(profile.default_currency));
+      }
+    } catch (e) {
+      // ignore
     }
   };
 
@@ -126,7 +146,7 @@ const Analytics = () => {
               <span className="text-lg">💰</span>
               <p className="text-xs text-muted-foreground">Total</p>
             </div>
-            <p className="text-xl font-bold text-primary">${stats.total.toFixed(2)}</p>
+            <p className="text-xl font-bold text-primary tabular-nums">{currencySymbol}{stats.total.toFixed(2)}</p>
           </div>
         </Card>
 
@@ -136,7 +156,7 @@ const Analytics = () => {
               <span className="text-lg">📈</span>
               <p className="text-xs text-muted-foreground">Average</p>
             </div>
-            <p className="text-xl font-bold text-accent">${stats.avg.toFixed(2)}</p>
+            <p className="text-xl font-bold text-accent tabular-nums">{currencySymbol}{stats.avg.toFixed(2)}</p>
           </div>
         </Card>
 

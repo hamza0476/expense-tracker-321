@@ -49,9 +49,11 @@ const Expenses = () => {
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editExpense, setEditExpense] = useState<Expense | null>(null);
+  const [currencySymbol, setCurrencySymbol] = useState("$");
 
   useEffect(() => {
     fetchExpenses();
+    fetchCurrency();
   }, []);
 
   useEffect(() => {
@@ -110,6 +112,23 @@ const Expenses = () => {
       toast.error("Failed to load expenses");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCurrency = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("default_currency")
+        .eq("user_id", user.id)
+        .single();
+      if (profile?.default_currency) {
+        setCurrencySymbol(getCurrencySymbol(profile.default_currency));
+      }
+    } catch (e) {
+      // ignore
     }
   };
 
