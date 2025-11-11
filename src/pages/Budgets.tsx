@@ -34,6 +34,7 @@ const Budgets = () => {
   const [showForm, setShowForm] = useState(false);
   const [totalBudget, setTotalBudget] = useState(0);
   const [totalSpent, setTotalSpent] = useState(0);
+  const [currencySymbol, setCurrencySymbol] = useState("$");
   const [formData, setFormData] = useState({
     category: "",
     amount: "",
@@ -71,6 +72,18 @@ const Budgets = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      // Fetch user's preferred currency
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("default_currency")
+        .eq("user_id", user.id)
+        .single();
+      
+      if (profile?.default_currency) {
+        const { getCurrencySymbol } = await import("@/lib/currencies");
+        setCurrencySymbol(getCurrencySymbol(profile.default_currency));
+      }
 
       const currentDate = new Date();
       const year = currentDate.getFullYear();
@@ -215,7 +228,7 @@ const Budgets = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="px-3 pb-3">
-              <div className="text-xl font-bold text-primary">${totalBudget.toFixed(2)}</div>
+              <div className="text-xl font-bold text-primary tabular-nums">{currencySymbol}{totalBudget.toFixed(2)}</div>
               <p className="text-[10px] text-muted-foreground mt-0.5">This month</p>
             </CardContent>
           </Card>
@@ -227,7 +240,7 @@ const Budgets = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="px-3 pb-3">
-              <div className="text-xl font-bold text-accent">${totalSpent.toFixed(2)}</div>
+              <div className="text-xl font-bold text-accent tabular-nums">{currencySymbol}{totalSpent.toFixed(2)}</div>
               <p className="text-[10px] text-muted-foreground mt-0.5">This month</p>
             </CardContent>
           </Card>
@@ -346,11 +359,11 @@ const Budgets = () => {
             <CardContent className="space-y-3">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Spent</span>
-                <span className="font-bold text-lg">${item.spent.toFixed(2)}</span>
+                <span className="font-bold text-lg tabular-nums">{currencySymbol}{item.spent.toFixed(2)}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Budget</span>
-                <span className="font-semibold">${item.budget.toFixed(2)}</span>
+                <span className="font-semibold tabular-nums">{currencySymbol}{item.budget.toFixed(2)}</span>
               </div>
               <Progress value={Math.min(item.percentage, 100)} className="h-2.5" />
               <div className="flex items-center justify-between">
@@ -360,8 +373,8 @@ const Budgets = () => {
                   {item.percentage > 80 && item.percentage <= 100 && " - Warning"}
                   {item.percentage <= 80 && " - Good"}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  ${Math.max(0, item.budget - item.spent).toFixed(0)} left
+                <p className="text-xs text-muted-foreground tabular-nums">
+                  {currencySymbol}{Math.max(0, item.budget - item.spent).toFixed(0)} left
                 </p>
               </div>
             </CardContent>

@@ -19,6 +19,7 @@ export const CURRENCIES = [
   { code: 'ZAR', symbol: 'R', name: 'South African Rand', flag: '🇿🇦' },
   { code: 'RUB', symbol: '₽', name: 'Russian Ruble', flag: '🇷🇺' },
   { code: 'AED', symbol: 'د.إ', name: 'UAE Dirham', flag: '🇦🇪' },
+  { code: 'PKR', symbol: 'Rs', name: 'Pakistani Rupee', flag: '🇵🇰' },
 ];
 
 export const getCurrencySymbol = (code: string): string => {

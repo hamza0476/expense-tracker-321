@@ -129,6 +129,20 @@
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Noto Color Emoji', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    letter-spacing: normal;
+  }
+
+  /* Fix number spacing issue */
+  input[type="number"],
+  .tabular-nums,
+  [data-slot="number"] {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0 !important;
+  }
+  
+  /* Ensure all text has normal letter spacing by default */
+  * {
+    letter-spacing: normal;
   }
 
   /* Material Design elevation shadows */
@@ -165,4 +179,11 @@ button, a, [role="button"] {
 
 html {
   scroll-behavior: smooth;
+}
+
+/* Fix for mobile safe area (notch) */
+@supports (padding: env(safe-area-inset-top)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+  }
 }

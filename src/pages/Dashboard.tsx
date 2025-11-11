@@ -30,6 +30,8 @@ const Dashboard = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currency, setCurrency] = useState("USD");
+  const [currencySymbol, setCurrencySymbol] = useState("$");
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date())
@@ -49,6 +51,19 @@ const Dashboard = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      // Fetch user's preferred currency
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("default_currency")
+        .eq("user_id", user.id)
+        .single();
+      
+      if (profile?.default_currency) {
+        setCurrency(profile.default_currency);
+        const { getCurrencySymbol } = await import("@/lib/currencies");
+        setCurrencySymbol(getCurrencySymbol(profile.default_currency));
+      }
 
       const currentDate = new Date();
       const monthStart = startOfMonth(currentDate);
@@ -248,7 +263,7 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="px-3 pb-3">
-            <div className="text-xl font-bold text-primary">${stats.totalExpenses.toFixed(2)}</div>
+            <div className="text-xl font-bold text-primary tabular-nums">{currencySymbol}{stats.totalExpenses.toFixed(2)}</div>
             <p className="text-[10px] text-muted-foreground mt-0.5">{stats.expenseCount} transactions</p>
           </CardContent>
         </Card>
@@ -260,7 +275,7 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="px-3 pb-3">
-            <div className="text-xl font-bold text-accent">${stats.monthlyExpenses.toFixed(2)}</div>
+            <div className="text-xl font-bold text-accent tabular-nums">{currencySymbol}{stats.monthlyExpenses.toFixed(2)}</div>
             <p className="text-[10px] text-muted-foreground mt-0.5">Selected range</p>
           </CardContent>
         </Card>
@@ -272,7 +287,7 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="px-3 pb-3">
-            <div className="text-xl font-bold text-warning">${stats.totalBudget.toFixed(2)}</div>
+            <div className="text-xl font-bold text-warning tabular-nums">{currencySymbol}{stats.totalBudget.toFixed(2)}</div>
             <p className="text-[10px] text-muted-foreground mt-0.5">Total allocated</p>
           </CardContent>
         </Card>
@@ -319,7 +334,7 @@ const Dashboard = () => {
                     </p>
                   </div>
                   <div className="text-right ml-4">
-                    <p className="font-bold text-lg">${Number(expense.amount).toFixed(2)}</p>
+                    <p className="font-bold text-lg tabular-nums">{currencySymbol}{Number(expense.amount).toFixed(2)}</p>
                   </div>
                 </div>
               ))}
@@ -351,14 +366,14 @@ const Dashboard = () => {
                   outerRadius={100}
                     label={(entry) => {
                       const name = entry.name.length > 8 ? entry.name.substring(0, 8) + '...' : entry.name;
-                      return `${name}: $${entry.value.toFixed(0)}`;
+                      return `${name}: ${currencySymbol}${entry.value.toFixed(0)}`;
                     }}
                   >
                     {categoryData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
+                  <Tooltip formatter={(value: number) => `${currencySymbol}${value.toFixed(2)}`} />
                 </PieChart>
               </ResponsiveContainer>
             </CardContent>
@@ -390,7 +405,7 @@ const Dashboard = () => {
                       border: "1px solid hsl(var(--border))",
                       borderRadius: "var(--radius)"
                     }}
-                    formatter={(value: number) => `$${value.toFixed(2)}`}
+                    formatter={(value: number) => `${currencySymbol}${value.toFixed(2)}`}
                   />
                   <Legend />
                   <Bar dataKey="budget" fill="hsl(var(--primary))" name="Budget" radius={[8, 8, 0, 0]} />
@@ -417,11 +432,11 @@ const Dashboard = () => {
               <div key={item.category} className="space-y-2 p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-semibold">{item.category}</span>
-                  <span className="text-sm font-mono">
+                  <span className="text-sm font-mono tabular-nums">
                     <span className={item.percentage > 100 ? "text-destructive" : item.percentage > 80 ? "text-warning" : "text-success"}>
-                      ${item.spent.toFixed(2)}
+                      {currencySymbol}{item.spent.toFixed(2)}
                     </span>
-                    <span className="text-muted-foreground"> / ${item.budget.toFixed(2)}</span>
+                    <span className="text-muted-foreground"> / {currencySymbol}{item.budget.toFixed(2)}</span>
                   </span>
                 </div>
                 <Progress 
