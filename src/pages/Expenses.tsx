@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Search, Trash2, Edit, Download, Filter } from "lucide-react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { getCategoryColor } from "@/lib/categories";
+import { getCurrencySymbol } from "@/lib/currencies";
 import {
   AlertDialog,
   AlertDialogAction,
