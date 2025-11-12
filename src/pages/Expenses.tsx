@@ -302,8 +302,8 @@ const Expenses = () => {
                       </TableCell>
                       <TableCell className="hidden lg:table-cell">{expense.vendor || "-"}</TableCell>
                       <TableCell className="hidden lg:table-cell">{expense.payment_method || "-"}</TableCell>
-                      <TableCell className="text-right font-bold text-lg">
-                        ${Number(expense.amount).toFixed(2)}
+                      <TableCell className="text-right font-bold text-lg tabular-nums">
+                        {currencySymbol}{Number(expense.amount).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">

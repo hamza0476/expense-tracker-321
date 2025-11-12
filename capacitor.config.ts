@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'ExpenseWiz',
   webDir: 'dist',
   server: {
-    
+    androidScheme: 'https',
     cleartext: true
   },
   plugins: {
