@@ -4,10 +4,10 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { title: "Home", url: "/", icon: Home },
-  { title: "Budgets", url: "/budgets", icon: Target },
+  { title: "Budgets", url: "/budgets", icon: Wallet },
   { title: "Add", url: "/add-expense", icon: PlusCircle, isSpecial: true },
-  { title: "Analytics", url: "/analytics", icon: BarChart3 },
-  { title: "Expenses", url: "/expenses", icon: Wallet },
+  { title: "Goals", url: "/savings-goals", icon: Target },
+  { title: "Expenses", url: "/expenses", icon: BarChart3 },
 ];
 
 export const BottomNav = () => {

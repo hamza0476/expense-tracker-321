@@ -10,6 +10,17 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AppSidebar } from "@/components/AppSidebar";
 import { pushNotificationService } from "@/services/pushNotifications";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface LayoutProps {
   children: ReactNode;
@@ -18,6 +29,8 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<{ full_name?: string; avatar_url?: string }>({});
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -28,6 +41,8 @@ const Layout = ({ children }: LayoutProps) => {
         setUser(session.user);
         // Initialize push notifications
         pushNotificationService.initialize();
+        // Fetch profile
+        fetchProfile(session.user.id);
       }
     };
     checkUser();
@@ -38,13 +53,30 @@ const Layout = ({ children }: LayoutProps) => {
       } else {
         setUser(session.user);
         pushNotificationService.initialize();
+        fetchProfile(session.user.id);
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name, avatar_url")
+        .eq("user_id", userId)
+        .single();
+      if (data) {
+        setProfile(data);
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    }
+  };
+
   const handleLogout = async () => {
+    setShowLogoutDialog(false);
     await supabase.auth.signOut();
     toast.success("Logged out successfully");
     navigate("/splash");
@@ -69,22 +101,27 @@ const Layout = ({ children }: LayoutProps) => {
           {/* Theme Toggle */}
           <ThemeToggle />
           
-          {/* Profile Button */}
+          {/* Profile Avatar */}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate("/profile")}
-            className="hover:bg-primary/10 hover:text-primary transition-colors text-xs font-medium"
+            className="hover:bg-primary/10 hover:text-primary transition-colors gap-2"
           >
-            <User className="w-4 h-4 mr-1" />
-            <span className="hidden sm:inline">Profile</span>
+            <Avatar className="h-7 w-7">
+              <AvatarImage src={profile.avatar_url} alt={profile.full_name} />
+              <AvatarFallback className="text-xs bg-gradient-to-br from-primary to-accent text-primary-foreground">
+                {profile.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase() || "U"}
+              </AvatarFallback>
+            </Avatar>
+            <span className="hidden sm:inline text-xs font-medium">{profile.full_name || "Profile"}</span>
           </Button>
 
           {/* Logout Button */}
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleLogout}
+            onClick={() => setShowLogoutDialog(true)}
             className="hover:bg-destructive/10 hover:text-destructive transition-colors text-xs font-medium"
           >
             <LogOut className="w-4 h-4 mr-1" />
@@ -105,6 +142,24 @@ const Layout = ({ children }: LayoutProps) => {
       
       {/* Floating AI Assistant */}
       <FloatingAIChat />
+
+      {/* Logout Confirmation Dialog */}
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to logout? You'll need to sign in again to access your account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLogout} className="bg-destructive hover:bg-destructive/90">
+              Logout
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { EditExpenseDialog } from "@/components/EditExpenseDialog";
 import { EXPENSE_CATEGORIES } from "@/lib/categories";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Expense {
   id: string;
@@ -181,7 +182,37 @@ const Expenses = () => {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-full">Loading...</div>;
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="h-10 w-40 mb-2" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+        </div>
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="border-border/40">
+              <CardHeader className="pb-2 px-3 pt-3">
+                <Skeleton className="h-4 w-20" />
+              </CardHeader>
+              <CardContent className="px-3 pb-3">
+                <Skeleton className="h-8 w-24" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <Card>
+          <CardContent className="p-6">
+            <div className="space-y-3">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (

@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { EXPENSE_CATEGORIES, getCategoryColor } from "@/lib/categories";
 import { Plus, Trash2, Wallet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
 
 interface Budget {
   id: string;
@@ -205,7 +206,9 @@ const Budgets = () => {
               Budgets
             </span>
           </h2>
-          <p className="text-muted-foreground">Set spending limits for different categories</p>
+          <p className="text-muted-foreground">
+            {format(new Date(), "MMMM yyyy")} spending limits
+          </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleResetBudgets} className="gap-2">
@@ -229,7 +232,7 @@ const Budgets = () => {
             </CardHeader>
             <CardContent className="px-3 pb-3">
               <div className="text-xl font-bold text-primary tabular-nums">{currencySymbol}{totalBudget.toFixed(2)}</div>
-              <p className="text-[10px] text-muted-foreground mt-0.5">This month</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{format(new Date(), "MMMM")}</p>
             </CardContent>
           </Card>
 
@@ -241,7 +244,7 @@ const Budgets = () => {
             </CardHeader>
             <CardContent className="px-3 pb-3">
               <div className="text-xl font-bold text-accent tabular-nums">{currencySymbol}{totalSpent.toFixed(2)}</div>
-              <p className="text-[10px] text-muted-foreground mt-0.5">This month</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{format(new Date(), "MMMM")}</p>
             </CardContent>
           </Card>
 

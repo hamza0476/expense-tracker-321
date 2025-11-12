@@ -13,7 +13,6 @@ import Budgets from "./pages/Budgets";
 import Profile from "./pages/Profile";
 import RecurringExpenses from "./pages/RecurringExpenses";
 import AIAssistant from "./pages/AIAssistant";
-import Analytics from "./pages/Analytics";
 import DataExport from "./pages/DataExport";
 import SavingsGoals from "./pages/SavingsGoals";
 import NotFound from "./pages/NotFound";
@@ -35,9 +34,8 @@ const App = () => (
           <Route path="/budgets" element={<Layout><Budgets /></Layout>} />
           <Route path="/recurring" element={<Layout><RecurringExpenses /></Layout>} />
           <Route path="/ai-assistant" element={<Layout><AIAssistant /></Layout>} />
-          <Route path="/analytics" element={<Layout><Analytics /></Layout>} />
-          <Route path="/export" element={<Layout><DataExport /></Layout>} />
           <Route path="/savings-goals" element={<Layout><SavingsGoals /></Layout>} />
+          <Route path="/export" element={<Layout><DataExport /></Layout>} />
           <Route path="/profile" element={<Layout><Profile /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from "recharts";
+import { Skeleton } from "@/components/ui/skeleton";
 import { DollarSign, TrendingUp, Calendar, Wallet } from "lucide-react";
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { EXPENSE_CATEGORIES, getCategoryColor } from "@/lib/categories";
@@ -162,7 +163,41 @@ const Dashboard = () => {
   };
 
   if (loading) {
-    return <div className="flex items-center justify-center h-full">Loading...</div>;
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-center justify-between w-full md:w-auto gap-3">
+            <div className="flex-1">
+              <Skeleton className="h-10 w-48 mb-2" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+          </div>
+        </div>
+        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="border-border/40">
+              <CardHeader className="pb-2 px-3 pt-3">
+                <Skeleton className="h-4 w-20" />
+              </CardHeader>
+              <CardContent className="px-3 pb-3">
+                <Skeleton className="h-8 w-24 mb-1" />
+                <Skeleton className="h-3 w-32" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <Card className="border-border/40">
+          <CardHeader>
+            <Skeleton className="h-6 w-48" />
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} className="h-16 w-full" />
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const categoryData = getCategoryData();
@@ -345,41 +380,6 @@ const Dashboard = () => {
 
       {/* Charts */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {categoryData.length > 0 && (
-          <Card className="border-border/40 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <span>🏷️</span>
-                <span className="text-accent">Spending by Category</span>
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">This month's distribution</p>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={categoryData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                  outerRadius={100}
-                    label={(entry) => {
-                      const name = entry.name.length > 8 ? entry.name.substring(0, 8) + '...' : entry.name;
-                      return `${name}: ${currencySymbol}${entry.value.toFixed(0)}`;
-                    }}
-                  >
-                    {categoryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => `${currencySymbol}${value.toFixed(2)}`} />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        )}
-
         {budgetComparison.length > 0 && (
           <Card className="border-border/40 shadow-lg">
             <CardHeader>

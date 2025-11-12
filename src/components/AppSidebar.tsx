@@ -24,7 +24,6 @@ const menuItems = [
 
 const aiMenuItems = [
   { title: "AI Assistant", url: "/ai-assistant", icon: Bot },
-  { title: "Analytics", url: "/analytics", icon: BarChart3 },
   { title: "Savings Goals", url: "/savings-goals", icon: Target },
   { title: "Export Data", url: "/export", icon: Download },
 ];
