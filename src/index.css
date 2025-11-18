@@ -83,39 +83,62 @@
   }
 
   .dark {
-    --background: 222 47% 11%;
+    /* Enhanced dark mode with better contrast */
+    --background: 222 47% 8%;
     --foreground: 0 0% 98%;
 
-    --card: 224 47% 14%;
+    --card: 222 47% 12%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 224 47% 14%;
+    --popover: 222 47% 12%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 262 83% 58%;
+    --primary: 262 90% 65%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 13% 18%;
+    --secondary: 222 30% 16%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 220 13% 18%;
-    --muted-foreground: 215 16% 65%;
+    --muted: 222 30% 16%;
+    --muted-foreground: 215 20% 70%;
 
-    --accent: 173 80% 40%;
+    --accent: 173 85% 45%;
     --accent-foreground: 0 0% 100%;
 
-    --success: 142 76% 36%;
+    --success: 142 80% 42%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 222 47% 11%;
+    --warning: 38 95% 55%;
+    --warning-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 90% 65%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 18%;
-    --input: 220 13% 18%;
-    --ring: 262 83% 58%;
+    --border: 222 30% 20%;
+    --input: 222 30% 18%;
+    --ring: 262 90% 65%;
+
+    /* Enhanced shadows for dark mode */
+    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.5);
+    --shadow-md: 0 4px 8px -1px rgb(0 0 0 / 0.6);
+    --shadow-lg: 0 10px 20px -3px rgb(0 0 0 / 0.7);
+    --shadow-xl: 0 20px 30px -5px rgb(0 0 0 / 0.8);
+    --shadow-glow: 0 0 50px hsl(262 90% 65% / 0.4);
+  }
+
+  /* Gradient animations */
+  @keyframes gradient {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient 3s ease infinite;
   }
 }
 
