@@ -15,6 +15,7 @@ import RecurringExpenses from "./pages/RecurringExpenses";
 import AIAssistant from "./pages/AIAssistant";
 import DataExport from "./pages/DataExport";
 import SavingsGoals from "./pages/SavingsGoals";
+import DailyTasks from "./pages/DailyTasks";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,9 +33,10 @@ const App = () => (
           <Route path="/add-expense" element={<Layout><AddExpense /></Layout>} />
           <Route path="/expenses" element={<Layout><Expenses /></Layout>} />
           <Route path="/budgets" element={<Layout><Budgets /></Layout>} />
-          <Route path="/recurring" element={<Layout><RecurringExpenses /></Layout>} />
+          <Route path="/recurring-expenses" element={<Layout><RecurringExpenses /></Layout>} />
           <Route path="/ai-assistant" element={<Layout><AIAssistant /></Layout>} />
           <Route path="/savings-goals" element={<Layout><SavingsGoals /></Layout>} />
+          <Route path="/daily-tasks" element={<Layout><DailyTasks /></Layout>} />
           <Route path="/export" element={<Layout><DataExport /></Layout>} />
           <Route path="/profile" element={<Layout><Profile /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
