@@ -1,4 +1,4 @@
-import { LayoutDashboard, PlusCircle, Wallet, Search, UserCircle, TrendingUp, Repeat, Bot, BarChart3, Download, Target } from "lucide-react";
+import { Home, Wallet, Target, Receipt, RefreshCw, ListTodo, User, PlusCircle, TrendingUp, Bot, Download } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -15,16 +15,17 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 const menuItems = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Home", url: "/", icon: Home },
   { title: "Add Expense", url: "/add-expense", icon: PlusCircle },
-  { title: "Expenses", url: "/expenses", icon: Search },
   { title: "Budgets", url: "/budgets", icon: Wallet },
-  { title: "Recurring", url: "/recurring", icon: Repeat },
+  { title: "Savings Goals", url: "/savings-goals", icon: Target },
+  { title: "Expenses", url: "/expenses", icon: Receipt },
+  { title: "Recurring", url: "/recurring-expenses", icon: RefreshCw },
+  { title: "Daily Tasks", url: "/daily-tasks", icon: ListTodo },
 ];
 
 const aiMenuItems = [
   { title: "AI Assistant", url: "/ai-assistant", icon: Bot },
-  { title: "Savings Goals", url: "/savings-goals", icon: Target },
   { title: "Export Data", url: "/export", icon: Download },
 ];
 
@@ -61,7 +62,7 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild className="hover:bg-sidebar-accent/80 transition-all duration-200">
                     <NavLink
                       to={item.url}
-                      end
+                      end={item.url === "/"}
                       className="flex items-center gap-3 px-4 py-3 rounded-lg"
                       activeClassName="bg-sidebar-accent text-primary font-semibold shadow-lg shadow-primary/10"
                     >
@@ -112,7 +113,7 @@ export function AppSidebar() {
                 className="flex items-center gap-3 px-4 py-3 rounded-lg"
                 activeClassName="bg-sidebar-accent text-primary font-semibold shadow-lg shadow-primary/10"
               >
-                <UserCircle className="h-5 w-5 flex-shrink-0" />
+                <User className="h-5 w-5 flex-shrink-0" />
                 {open && <span className="truncate">Profile</span>}
               </NavLink>
             </SidebarMenuButton>
