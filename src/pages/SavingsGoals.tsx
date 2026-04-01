@@ -5,16 +5,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Plus, Target, Trash2 } from "lucide-react";
+import { CalendarIcon, Plus, Target, Trash2, TrendingUp, Award } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { EXPENSE_CATEGORIES } from "@/lib/categories";
+import { getCurrencySymbol } from "@/lib/currencies";
 
 interface SavingsGoal {
   id: string;
@@ -30,6 +32,7 @@ const SavingsGoals = () => {
   const [goals, setGoals] = useState<SavingsGoal[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
+  const [currencySymbol, setCurrencySymbol] = useState("$");
   const [formData, setFormData] = useState({
     title: "",
     target_amount: "",
@@ -47,6 +50,17 @@ const SavingsGoals = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      // Fetch user's currency preference
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("default_currency")
+        .eq("user_id", user.id)
+        .single();
+
+      if (profile?.default_currency) {
+        setCurrencySymbol(getCurrencySymbol(profile.default_currency));
+      }
 
       const { data, error } = await supabase
         .from("savings_goals")
@@ -133,32 +147,56 @@ const SavingsGoals = () => {
     }
   };
 
+  const totalSaved = goals.reduce((sum, g) => sum + g.current_amount, 0);
+  const totalTarget = goals.reduce((sum, g) => sum + g.target_amount, 0);
+  const overallProgress = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
+
   if (loading) {
-    return <div className="flex items-center justify-center h-full">Loading...</div>;
+    return (
+      <div className="space-y-4 animate-fade-in">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-10 w-48 rounded-xl" />
+          <Skeleton className="h-10 w-28 rounded-xl" />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <Skeleton className="h-24 rounded-xl" />
+          <Skeleton className="h-24 rounded-xl" />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map(i => (
+            <Skeleton key={i} className="h-64 rounded-xl" />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-5 animate-fade-in pb-24">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight flex items-center gap-2">
-            <span>🎯</span>
-            <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2">
+            <Target className="h-6 w-6 text-primary" />
+            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Savings Goals
             </span>
           </h2>
-          <p className="text-muted-foreground">Track your financial targets and progress</p>
+          <p className="text-sm text-muted-foreground mt-0.5">Track your financial targets</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2">
+            <Button className="gap-2 rounded-xl shadow-lg shadow-primary/20 bg-gradient-to-r from-primary to-primary/90">
               <Plus className="h-4 w-4" />
               New Goal
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="rounded-2xl border-border/50">
             <DialogHeader>
-              <DialogTitle>Create Savings Goal</DialogTitle>
+              <DialogTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-primary" />
+                Create Savings Goal
+              </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -169,11 +207,12 @@ const SavingsGoals = () => {
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="Emergency Fund"
                   required
+                  className="rounded-xl"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="target_amount">Target Amount</Label>
+                  <Label htmlFor="target_amount">Target ({currencySymbol})</Label>
                   <Input
                     id="target_amount"
                     type="number"
@@ -182,10 +221,11 @@ const SavingsGoals = () => {
                     onChange={(e) => setFormData({ ...formData, target_amount: e.target.value })}
                     placeholder="5000.00"
                     required
+                    className="rounded-xl"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="current_amount">Current Amount</Label>
+                  <Label htmlFor="current_amount">Saved ({currencySymbol})</Label>
                   <Input
                     id="current_amount"
                     type="number"
@@ -193,13 +233,14 @@ const SavingsGoals = () => {
                     value={formData.current_amount}
                     onChange={(e) => setFormData({ ...formData, current_amount: e.target.value })}
                     placeholder="0.00"
+                    className="rounded-xl"
                   />
                 </div>
               </div>
               <div>
                 <Label>Category (Optional)</Label>
                 <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-                  <SelectTrigger>
+                  <SelectTrigger className="rounded-xl">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -217,7 +258,7 @@ const SavingsGoals = () => {
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className={cn("w-full justify-start text-left font-normal", !formData.deadline && "text-muted-foreground")}
+                      className={cn("w-full justify-start text-left font-normal rounded-xl", !formData.deadline && "text-muted-foreground")}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {formData.deadline ? format(formData.deadline, "PPP") : "Pick a date"}
@@ -242,95 +283,142 @@ const SavingsGoals = () => {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Save for a rainy day..."
                   rows={3}
+                  className="rounded-xl"
                 />
               </div>
-              <Button type="submit" className="w-full">Create Goal</Button>
+              <Button type="submit" className="w-full rounded-xl bg-gradient-to-r from-primary to-primary/90 shadow-lg">
+                Create Goal
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
+      {/* Overview Stats */}
+      {goals.length > 0 && (
+        <div className="grid grid-cols-2 gap-3">
+          <Card className="border-border/40 bg-gradient-to-br from-primary/10 to-primary/5 shadow-md">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <TrendingUp className="h-4 w-4 text-primary" />
+                <p className="text-xs text-muted-foreground font-medium">Total Saved</p>
+              </div>
+              <p className="text-xl font-bold text-primary tabular-nums">
+                {currencySymbol}{totalSaved.toFixed(2)}
+              </p>
+            </CardContent>
+          </Card>
+          <Card className="border-border/40 bg-gradient-to-br from-accent/10 to-accent/5 shadow-md">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Award className="h-4 w-4 text-accent" />
+                <p className="text-xs text-muted-foreground font-medium">Progress</p>
+              </div>
+              <p className="text-xl font-bold text-accent tabular-nums">
+                {overallProgress.toFixed(0)}%
+              </p>
+              <Progress value={Math.min(overallProgress, 100)} className="h-1.5 mt-1" />
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {goals.length === 0 ? (
-        <Card className="border-border/40 shadow-lg">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Target className="h-16 w-16 text-muted-foreground mb-4" />
+        <Card className="border-border/40 shadow-lg rounded-2xl">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4">
+              <Target className="h-10 w-10 text-primary" />
+            </div>
             <h3 className="text-xl font-semibold mb-2">No savings goals yet</h3>
-            <p className="text-muted-foreground text-center mb-4">
+            <p className="text-muted-foreground text-center mb-4 text-sm">
               Start setting financial targets to track your progress
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {goals.map((goal) => {
             const progress = (goal.current_amount / goal.target_amount) * 100;
             const isComplete = progress >= 100;
 
             return (
-              <Card key={goal.id} className="border-border/40 shadow-lg relative overflow-hidden">
+              <Card key={goal.id} className="border-border/40 shadow-lg relative overflow-hidden rounded-2xl">
                 {isComplete && (
                   <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-success via-accent to-success" />
                 )}
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center justify-between text-base">
                     <span className="flex items-center gap-2">
-                      <span>🎯</span>
+                      <div className={cn(
+                        "w-8 h-8 rounded-lg flex items-center justify-center",
+                        isComplete ? "bg-success/20" : "bg-primary/20"
+                      )}>
+                        {isComplete ? (
+                          <Award className="h-4 w-4 text-success" />
+                        ) : (
+                          <Target className="h-4 w-4 text-primary" />
+                        )}
+                      </div>
                       <span className="truncate">{goal.title}</span>
                     </span>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => handleDelete(goal.id)}
-                      className="h-8 w-8 text-destructive hover:text-destructive"
+                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-lg"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </CardTitle>
                   {goal.category && (
-                    <p className="text-sm text-muted-foreground">{goal.category}</p>
+                    <span className="text-xs bg-muted px-2 py-0.5 rounded-full w-fit text-muted-foreground">
+                      {goal.category}
+                    </span>
                   )}
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3">
                   {goal.description && (
-                    <p className="text-sm text-muted-foreground">{goal.description}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{goal.description}</p>
                   )}
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-2xl font-bold text-primary">
-                        ${goal.current_amount.toFixed(2)}
+                    <div className="flex items-baseline justify-between mb-1.5">
+                      <span className="text-2xl font-bold text-primary tabular-nums">
+                        {currencySymbol}{goal.current_amount.toFixed(2)}
                       </span>
-                      <span className="text-sm text-muted-foreground">
-                        of ${goal.target_amount.toFixed(2)}
+                      <span className="text-xs text-muted-foreground">
+                        of {currencySymbol}{goal.target_amount.toFixed(2)}
                       </span>
                     </div>
-                    <Progress value={Math.min(progress, 100)} className="h-3" />
+                    <Progress value={Math.min(progress, 100)} className="h-2.5 rounded-full" />
                     <p className={cn(
-                      "text-sm font-medium mt-2",
+                      "text-xs font-medium mt-1.5",
                       isComplete ? "text-success" : progress > 75 ? "text-warning" : "text-muted-foreground"
                     )}>
                       {progress.toFixed(1)}% {isComplete ? "Complete! 🎉" : "saved"}
                     </p>
                   </div>
                   {goal.deadline && (
-                    <p className="text-sm text-muted-foreground">
-                      Deadline: {format(new Date(goal.deadline), "MMM dd, yyyy")}
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <CalendarIcon className="h-3 w-3" />
+                      {format(new Date(goal.deadline), "MMM dd, yyyy")}
                     </p>
                   )}
                   <div className="flex gap-2">
                     <Input
                       type="number"
                       step="0.01"
-                      placeholder="Update amount"
+                      placeholder={`Update (${currencySymbol})`}
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           handleUpdateAmount(goal.id, (e.target as HTMLInputElement).value);
                           (e.target as HTMLInputElement).value = "";
                         }
                       }}
-                      className="flex-1"
+                      className="flex-1 rounded-xl text-sm"
                     />
                     <Button
                       size="sm"
+                      className="rounded-xl"
                       onClick={(e) => {
                         const input = e.currentTarget.previousElementSibling as HTMLInputElement;
                         if (input.value) {
