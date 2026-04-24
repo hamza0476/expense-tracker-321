@@ -3,38 +3,49 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from "@/lib/categories";
-import { CalendarIcon, Sparkles, Receipt } from "lucide-react";
+import { EXPENSE_CATEGORIES } from "@/lib/categories";
+import { CalendarIcon, X, ChevronUp, ChevronDown, Sparkles, ScanLine } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { pushNotificationService } from "@/services/pushNotifications";
 import { ReceiptScanner } from "@/components/ReceiptScanner";
-import { TodayTransactions } from "@/components/TodayTransactions";
-import { Separator } from "@/components/ui/separator";
+import { getCurrencySymbol } from "@/lib/currencies";
+import { cn } from "@/lib/utils";
+import { Utensils, ShoppingBag, Car, Home, Film, Heart, Zap, MoreHorizontal } from "lucide-react";
+
+const QUICK_CATEGORIES = [
+  { value: "Dining", label: "Food", Icon: Utensils },
+  { value: "Shopping", label: "Shop", Icon: ShoppingBag },
+  { value: "Transport", label: "Travel", Icon: Car },
+  { value: "Rent", label: "Rent", Icon: Home },
+  { value: "Entertainment", label: "Fun", Icon: Film },
+  { value: "Health", label: "Health", Icon: Heart },
+  { value: "Utilities", label: "Bills", Icon: Zap },
+  { value: "Other", label: "Other", Icon: MoreHorizontal },
+];
 
 const AddExpense = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [defaultCurrency, setDefaultCurrency] = useState("USD");
+  const [type, setType] = useState<"expense" | "income">("expense");
+  const [showScanner, setShowScanner] = useState(false);
   const [formData, setFormData] = useState({
     amount: "",
-    category: "",
+    category: "Dining",
     description: "",
     date: new Date(),
     paymentMethod: "",
     vendor: "",
-    notes: ""
+    notes: "",
   });
 
   useEffect(() => {
-    const fetchUserCurrency = async () => {
+    (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data: profile } = await supabase
@@ -42,48 +53,49 @@ const AddExpense = () => {
           .select("default_currency")
           .eq("user_id", user.id)
           .single();
-        if (profile?.default_currency) {
-          setDefaultCurrency(profile.default_currency);
-        }
+        if (profile?.default_currency) setDefaultCurrency(profile.default_currency);
       }
-    };
-    fetchUserCurrency();
+    })();
   }, []);
 
+  const symbol = getCurrencySymbol(defaultCurrency);
+
+  const adjustAmount = (delta: number) => {
+    const v = parseFloat(formData.amount || "0");
+    const next = Math.max(0, v + delta);
+    setFormData({ ...formData, amount: next.toFixed(2) });
+  };
+
   const handleAICategorize = async () => {
-    if (!formData.description && !formData.vendor) {
-      toast.error("Please add a description or vendor first");
+    if (!formData.notes && !formData.vendor) {
+      toast.error("Add a note or vendor first");
       return;
     }
-
     setAiLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Not authenticated");
-
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-categorize-expense`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            description: formData.description,
+            description: formData.notes,
             amount: formData.amount,
             vendor: formData.vendor,
           }),
         }
       );
-
-      if (!response.ok) throw new Error('AI categorization failed');
-
+      if (!response.ok) throw new Error("AI failed");
       const { category } = await response.json();
       setFormData({ ...formData, category });
       toast.success(`AI suggested: ${category}`);
-    } catch (error: any) {
-      toast.error(error.message || "AI categorization failed");
+    } catch (e: any) {
+      toast.error(e.message);
     } finally {
       setAiLoading(false);
     }
@@ -91,38 +103,37 @@ const AddExpense = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.amount || parseFloat(formData.amount) <= 0) {
+      toast.error("Enter a valid amount");
+      return;
+    }
     setLoading(true);
-
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      const amount = parseFloat(formData.amount);
       const { error } = await supabase.from("expenses").insert([
         {
           user_id: user.id,
-          amount: parseFloat(formData.amount),
+          amount: type === "income" ? -Math.abs(amount) : Math.abs(amount),
           category: formData.category,
-          description: formData.description,
+          description: formData.notes,
           date: format(formData.date, "yyyy-MM-dd"),
-          payment_method: formData.paymentMethod,
-          vendor: formData.vendor,
-          notes: formData.notes,
+          payment_method: formData.paymentMethod || null,
+          vendor: formData.vendor || null,
+          notes: formData.notes || null,
           currency: defaultCurrency,
-          original_amount: parseFloat(formData.amount),
-          exchange_rate: 1.0
-        }
+          original_amount: amount,
+          exchange_rate: 1.0,
+        },
       ]);
-
       if (error) throw error;
-
-      toast.success("Expense added successfully!");
-      
-      // Check budget alerts after adding expense
+      toast.success(type === "income" ? "Income added!" : "Expense added!");
       pushNotificationService.checkBudgetAlerts(formData.category);
-      
       navigate("/expenses");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to add expense");
+    } catch (e: any) {
+      toast.error(e.message || "Failed");
     } finally {
       setLoading(false);
     }
@@ -134,194 +145,216 @@ const AddExpense = () => {
       amount: data.amount || formData.amount,
       category: data.category || formData.category,
       vendor: data.vendor || formData.vendor,
-      description: data.description || formData.description,
+      notes: data.description || formData.notes,
     });
+    setShowScanner(false);
   };
 
   return (
-    <div className="max-w-7xl mx-auto animate-fade-in p-4 md:p-6 space-y-6">
+    <div className="animate-fade-in -mx-4 -mt-4 md:mx-0 md:mt-0">
       {/* Header */}
-      <div className="text-center md:text-left">
-        <h2 className="text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-          Add New Expense
-        </h2>
-        <p className="text-muted-foreground mt-2">Quick and easy expense tracking with AI assistance</p>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-card sticky top-0 z-10">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-9 w-9">
+          <X className="h-5 w-5 text-primary" />
+        </Button>
+        <h1 className="text-base font-bold text-primary">
+          Add {type === "expense" ? "Transaction" : "Income"}
+        </h1>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setShowScanner(true)}
+          className="h-9 w-9 text-primary"
+        >
+          <ScanLine className="h-5 w-5" />
+        </Button>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Main Form - Takes 2 columns on large screens */}
-        <div className="lg:col-span-2">
-          <Card className="shadow-xl border-border/40 bg-gradient-to-br from-card via-card to-card/90">
-            <CardHeader className="space-y-1">
-              <CardTitle className="text-2xl flex items-center gap-2">
-                <Receipt className="h-6 w-6 text-primary" />
-                Expense Details
-              </CardTitle>
-              <CardDescription>Fill in the information below or scan a receipt</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Receipt Scanner Button */}
-                <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
-                  <ReceiptScanner onScanComplete={handleReceiptScan} />
-                </div>
-
-                <Separator />
-
-                {/* Form Fields */}
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="amount" className="text-base font-semibold">Amount *</Label>
-                    <Input
-                      id="amount"
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      value={formData.amount}
-                      onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                      required
-                      className="h-12 text-lg font-semibold"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="category" className="text-base font-semibold">Category *</Label>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleAICategorize}
-                        disabled={aiLoading}
-                        className="h-8 gap-1 text-xs hover:bg-primary/10"
-                      >
-                        <Sparkles className="h-3 w-3" />
-                        {aiLoading ? "Suggesting..." : "AI Suggest"}
-                      </Button>
-                    </div>
-                    <Select
-                      value={formData.category}
-                      onValueChange={(value) => setFormData({ ...formData, category: value })}
-                      required
-                    >
-                      <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {EXPENSE_CATEGORIES.map((cat) => (
-                          <SelectItem key={cat.value} value={cat.value}>
-                            {cat.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="date" className="text-base font-semibold">Date *</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full h-12 justify-start text-left font-normal"
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {format(formData.date, "PPP")}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={formData.date}
-                          onSelect={(date) => date && setFormData({ ...formData, date })}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="paymentMethod" className="text-base font-semibold">Payment Method</Label>
-                    <Select
-                      value={formData.paymentMethod}
-                      onValueChange={(value) => setFormData({ ...formData, paymentMethod: value })}
-                    >
-                      <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Select payment method" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {PAYMENT_METHODS.map((method) => (
-                          <SelectItem key={method.value} value={method.value}>
-                            {method.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="vendor" className="text-base font-semibold">Vendor/Store</Label>
-                    <Input
-                      id="vendor"
-                      placeholder="e.g., Walmart, Amazon"
-                      value={formData.vendor}
-                      onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
-                      className="h-12"
-                    />
-                  </div>
-
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="description" className="text-base font-semibold">Description</Label>
-                    <Input
-                      id="description"
-                      placeholder="Brief description of the expense"
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      className="h-12"
-                    />
-                  </div>
-
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="notes" className="text-base font-semibold">Additional Notes</Label>
-                    <Textarea
-                      id="notes"
-                      placeholder="Any additional details..."
-                      value={formData.notes}
-                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                      className="min-h-[100px] resize-none"
-                    />
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-3 pt-4">
-                  <Button 
-                    type="submit" 
-                    className="flex-1 h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all"
-                    disabled={loading}
-                  >
-                    {loading ? "Adding..." : "Add Expense"}
-                  </Button>
-                  <Button 
-                    type="button"
-                    variant="outline" 
-                    onClick={() => navigate("/expenses")}
-                    className="h-12 px-8"
-                    disabled={loading}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+      <form onSubmit={handleSubmit} className="p-4 space-y-5">
+        {/* Amount */}
+        <div className="text-center pt-2">
+          <p className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase mb-3">
+            Enter Amount
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <span className="text-3xl font-bold text-primary">{symbol}</span>
+            <Input
+              type="number"
+              step="0.01"
+              inputMode="decimal"
+              placeholder="0.00"
+              value={formData.amount}
+              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+              className="h-14 text-4xl font-bold text-center border-0 shadow-none bg-transparent w-44 px-0 placeholder:text-muted-foreground/40 focus-visible:ring-0"
+            />
+            <div className="flex flex-col gap-1">
+              <button
+                type="button"
+                onClick={() => adjustAmount(1)}
+                className="w-6 h-6 rounded-md hover:bg-muted flex items-center justify-center"
+              >
+                <ChevronUp className="w-4 h-4 text-muted-foreground" />
+              </button>
+              <button
+                type="button"
+                onClick={() => adjustAmount(-1)}
+                className="w-6 h-6 rounded-md hover:bg-muted flex items-center justify-center"
+              >
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Today's Transactions Sidebar */}
-        <div className="lg:col-span-1">
-          <TodayTransactions />
+        {/* Type tabs */}
+        <div className="bg-muted/60 rounded-full p-1 grid grid-cols-2">
+          <button
+            type="button"
+            onClick={() => setType("expense")}
+            className={cn(
+              "h-10 rounded-full font-bold text-xs uppercase tracking-wider transition-all",
+              type === "expense"
+                ? "bg-primary text-primary-foreground shadow"
+                : "text-muted-foreground"
+            )}
+          >
+            Expense
+          </button>
+          <button
+            type="button"
+            onClick={() => setType("income")}
+            className={cn(
+              "h-10 rounded-full font-bold text-xs uppercase tracking-wider transition-all",
+              type === "income"
+                ? "bg-primary text-primary-foreground shadow"
+                : "text-muted-foreground"
+            )}
+          >
+            Income
+          </button>
         </div>
-      </div>
+
+        {/* Category grid */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-bold text-base">Category</h3>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleAICategorize}
+              disabled={aiLoading}
+              className="h-7 text-xs gap-1 text-primary hover:bg-primary/10 px-2"
+            >
+              <Sparkles className="h-3 w-3" />
+              {aiLoading ? "..." : "AI Suggest"}
+            </Button>
+          </div>
+          <div className="grid grid-cols-4 gap-3">
+            {QUICK_CATEGORIES.map((c) => {
+              const active = formData.category === c.value;
+              return (
+                <button
+                  key={c.value}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, category: c.value })}
+                  className="flex flex-col items-center gap-1.5"
+                >
+                  <div
+                    className={cn(
+                      "w-14 h-14 rounded-2xl flex items-center justify-center transition-all",
+                      active
+                        ? "bg-success text-success-foreground shadow-md shadow-success/30"
+                        : "bg-muted text-foreground"
+                    )}
+                  >
+                    <c.Icon className="w-5 h-5" strokeWidth={2.2} />
+                  </div>
+                  <span className="text-xs font-medium">{c.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Date */}
+        <div className="space-y-2">
+          <p className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+            Date
+          </p>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="w-full h-12 rounded-2xl border border-border bg-card px-4 flex items-center justify-between text-sm font-medium"
+              >
+                <span className="flex items-center gap-2">
+                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                  {format(formData.date, "MM/dd/yyyy")}
+                </span>
+                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={formData.date}
+                onSelect={(d) => d && setFormData({ ...formData, date: d })}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {/* Notes */}
+        <div className="space-y-2">
+          <p className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+            Notes
+          </p>
+          <Textarea
+            placeholder="What was this for?"
+            value={formData.notes}
+            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            className="min-h-[88px] rounded-2xl border-border bg-card resize-none"
+          />
+        </div>
+
+        {/* Vendor (optional) */}
+        <Input
+          placeholder="Vendor / store (optional)"
+          value={formData.vendor}
+          onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
+          className="h-12 rounded-2xl border-border bg-card"
+        />
+
+        {/* Submit */}
+        <div className="space-y-2 pt-2">
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full h-14 text-base font-bold rounded-2xl shadow-lg shadow-primary/30"
+          >
+            {loading ? "Saving..." : "Save Transaction"}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => navigate(-1)}
+            className="w-full h-11 text-muted-foreground"
+          >
+            Cancel
+          </Button>
+        </div>
+      </form>
+
+      {/* Scanner modal */}
+      {showScanner && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center justify-center p-4" onClick={() => setShowScanner(false)}>
+          <div className="bg-card rounded-3xl p-4 w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+            <ReceiptScanner onScanComplete={handleReceiptScan} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

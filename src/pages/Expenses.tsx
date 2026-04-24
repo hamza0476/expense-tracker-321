@@ -1,14 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Search, Trash2, Edit, Download, Filter } from "lucide-react";
-import { format, startOfMonth, endOfMonth } from "date-fns";
-import { getCategoryColor } from "@/lib/categories";
+import { Search, Trash2, Edit, Calendar as CalIcon, Tag, SlidersHorizontal, ChevronDown } from "lucide-react";
+import { format, isToday, isYesterday, startOfMonth, endOfMonth } from "date-fns";
+import { EXPENSE_CATEGORIES, getCategoryColor } from "@/lib/categories";
 import { getCurrencySymbol } from "@/lib/currencies";
 import {
   AlertDialog,
@@ -21,15 +19,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { EditExpenseDialog } from "@/components/EditExpenseDialog";
-import { EXPENSE_CATEGORIES } from "@/lib/categories";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 interface Expense {
   id: string;
@@ -40,11 +37,11 @@ interface Expense {
   payment_method: string;
   vendor: string;
   notes: string;
+  created_at: string;
 }
 
 const Expenses = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [filteredExpenses, setFilteredExpenses] = useState<Expense[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
@@ -58,60 +55,70 @@ const Expenses = () => {
     fetchCurrency();
   }, []);
 
-  useEffect(() => {
-    let filtered = [...expenses];
-
-    // Search filter
+  const filtered = useMemo(() => {
+    let f = [...expenses];
     if (searchTerm) {
-      filtered = filtered.filter(exp =>
-        exp.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        exp.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        exp.vendor?.toLowerCase().includes(searchTerm.toLowerCase())
+      const q = searchTerm.toLowerCase();
+      f = f.filter(
+        (e) =>
+          e.category?.toLowerCase().includes(q) ||
+          e.description?.toLowerCase().includes(q) ||
+          e.vendor?.toLowerCase().includes(q)
       );
     }
-
-    // Category filter
-    if (categoryFilter !== "all") {
-      filtered = filtered.filter(exp => exp.category === categoryFilter);
-    }
-
-    // Date filter
+    if (categoryFilter !== "all") f = f.filter((e) => e.category === categoryFilter);
     if (dateFilter !== "all") {
       const now = new Date();
-      const monthStart = startOfMonth(now);
-      const monthEnd = endOfMonth(now);
-      
       if (dateFilter === "this-month") {
-        filtered = filtered.filter(exp => {
-          const expDate = new Date(exp.date);
-          return expDate >= monthStart && expDate <= monthEnd;
+        const s = startOfMonth(now), en = endOfMonth(now);
+        f = f.filter((e) => {
+          const d = new Date(e.date);
+          return d >= s && d <= en;
         });
       } else if (dateFilter === "last-30-days") {
-        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        filtered = filtered.filter(exp => new Date(exp.date) >= thirtyDaysAgo);
+        const ago = new Date(now.getTime() - 30 * 86400000);
+        f = f.filter((e) => new Date(e.date) >= ago);
       }
     }
-
-    setFilteredExpenses(filtered);
+    return f;
   }, [searchTerm, categoryFilter, dateFilter, expenses]);
+
+  // Group by day
+  const grouped = useMemo(() => {
+    const groups: { label: string; date: string; items: Expense[] }[] = [];
+    const map = new Map<string, Expense[]>();
+    filtered.forEach((e) => {
+      const key = e.date;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(e);
+    });
+    Array.from(map.entries())
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .forEach(([date, items]) => {
+        const d = new Date(date);
+        let label = format(d, "EEEE");
+        if (isToday(d)) label = "Today";
+        else if (isYesterday(d)) label = "Yesterday";
+        groups.push({ label, date: format(d, "MMM dd, yyyy").toUpperCase(), items });
+      });
+    return groups;
+  }, [filtered]);
 
   const fetchExpenses = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-
       const { data, error } = await supabase
         .from("expenses")
         .select("*")
         .eq("user_id", user.id)
-        .order("date", { ascending: false });
-
+        .order("date", { ascending: false })
+        .order("created_at", { ascending: false });
       if (error) throw error;
       setExpenses(data || []);
-      setFilteredExpenses(data || []);
     } catch (error) {
-      console.error("Error fetching expenses:", error);
-      toast.error("Failed to load expenses");
+      console.error(error);
+      toast.error("Failed to load transactions");
     } finally {
       setLoading(false);
     }
@@ -129,253 +136,183 @@ const Expenses = () => {
       if (profile?.default_currency) {
         setCurrencySymbol(getCurrencySymbol(profile.default_currency));
       }
-    } catch (e) {
-      // ignore
-    }
+    } catch {}
   };
 
   const handleDelete = async () => {
     if (!deleteId) return;
-
     try {
-      const { error } = await supabase
-        .from("expenses")
-        .delete()
-        .eq("id", deleteId);
-
+      const { error } = await supabase.from("expenses").delete().eq("id", deleteId);
       if (error) throw error;
-
-      toast.success("Expense deleted successfully");
+      toast.success("Deleted");
       fetchExpenses();
-    } catch (error) {
-      console.error("Error deleting expense:", error);
-      toast.error("Failed to delete expense");
+    } catch {
+      toast.error("Failed to delete");
     } finally {
       setDeleteId(null);
     }
   };
 
-  const exportToCSV = () => {
-    const headers = ["Date", "Category", "Amount", "Description", "Vendor", "Payment Method"];
-    const csvData = filteredExpenses.map(exp => [
-      format(new Date(exp.date), "yyyy-MM-dd"),
-      exp.category,
-      exp.amount,
-      exp.description || "",
-      exp.vendor || "",
-      exp.payment_method || ""
-    ]);
-
-    const csv = [
-      headers.join(","),
-      ...csvData.map(row => row.join(","))
-    ].join("\n");
-
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `expenses_${format(new Date(), "yyyy-MM-dd")}.csv`;
-    a.click();
-    window.URL.revokeObjectURL(url);
-    toast.success("Expenses exported successfully");
+  const getCategoryEmoji = (cat: string) => {
+    const c = EXPENSE_CATEGORIES.find((x) => x.value === cat);
+    return c?.label.split(" ")[0] || "📦";
   };
 
   if (loading) {
     return (
-      <div className="space-y-6 animate-fade-in">
-        <div className="flex items-center justify-between">
-          <div>
-            <Skeleton className="h-10 w-40 mb-2" />
-            <Skeleton className="h-4 w-64" />
-          </div>
+      <div className="space-y-3 animate-fade-in">
+        <Skeleton className="h-12 rounded-2xl" />
+        <div className="flex gap-2">
+          <Skeleton className="h-9 flex-1 rounded-full" />
+          <Skeleton className="h-9 flex-1 rounded-full" />
+          <Skeleton className="h-9 flex-1 rounded-full" />
         </div>
-        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="border-border/40">
-              <CardHeader className="pb-2 px-3 pt-3">
-                <Skeleton className="h-4 w-20" />
-              </CardHeader>
-              <CardContent className="px-3 pb-3">
-                <Skeleton className="h-8 w-24" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-        <Card>
-          <CardContent className="p-6">
-            <div className="space-y-3">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                <Skeleton key={i} className="h-16 w-full" />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="h-20 rounded-2xl" />
+        ))}
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Expenses
-          </h2>
-          <p className="text-muted-foreground">View and manage all your transactions</p>
-        </div>
-        <Button onClick={exportToCSV} variant="outline" className="gap-2 shadow-sm">
-          <Download className="h-4 w-4" />
-          Export CSV
-        </Button>
+    <div className="space-y-4 animate-fade-in pb-4">
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search transactions..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-11 h-12 rounded-2xl bg-card border-border/40 shadow-sm"
+        />
       </div>
 
-      <Card className="shadow-lg border-border/40">
-        <CardHeader>
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-              <div className="relative flex-1 w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by category, vendor, or description..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Button
-                variant="outline"
-                className="gap-2 w-full sm:w-auto"
-                onClick={() => {
-                  setSearchTerm("");
-                  setCategoryFilter("all");
-                  setDateFilter("all");
-                }}
-              >
-                <Filter className="h-4 w-4" />
-                Clear Filters
-              </Button>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-full sm:w-[200px]">
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {EXPENSE_CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      {/* Filter Chips */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-1.5 px-3 h-9 rounded-full border border-border bg-card text-sm font-medium shrink-0">
+              <CalIcon className="w-3.5 h-3.5" />
+              {dateFilter === "all" ? "Date" : dateFilter === "this-month" ? "This month" : "Last 30 days"}
+              <ChevronDown className="w-3.5 h-3.5" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => setDateFilter("all")}>All time</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setDateFilter("this-month")}>This month</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setDateFilter("last-30-days")}>Last 30 days</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-              <Select value={dateFilter} onValueChange={setDateFilter}>
-                <SelectTrigger className="w-full sm:w-[200px]">
-                  <SelectValue placeholder="All Time" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="this-month">This Month</SelectItem>
-                  <SelectItem value="last-30-days">Last 30 Days</SelectItem>
-                </SelectContent>
-              </Select>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-1.5 px-3 h-9 rounded-full border border-border bg-card text-sm font-medium shrink-0">
+              <Tag className="w-3.5 h-3.5" />
+              {categoryFilter === "all" ? "Category" : categoryFilter}
+              <ChevronDown className="w-3.5 h-3.5" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="max-h-72 overflow-auto">
+            <DropdownMenuItem onClick={() => setCategoryFilter("all")}>All</DropdownMenuItem>
+            {EXPENSE_CATEGORIES.map((c) => (
+              <DropdownMenuItem key={c.value} onClick={() => setCategoryFilter(c.value)}>
+                {c.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-              <div className="text-sm text-muted-foreground flex items-center">
-                {filteredExpenses.length} expense{filteredExpenses.length !== 1 ? 's' : ''} found
-              </div>
+        <button
+          onClick={() => {
+            setSearchTerm("");
+            setCategoryFilter("all");
+            setDateFilter("all");
+          }}
+          className="flex items-center gap-1.5 px-3 h-9 rounded-full border border-border bg-card text-sm font-medium shrink-0"
+        >
+          <SlidersHorizontal className="w-3.5 h-3.5" />
+          Reset
+        </button>
+      </div>
+
+      {/* Grouped Transactions */}
+      <div className="space-y-5">
+        {grouped.map((group) => (
+          <div key={group.date} className="space-y-2">
+            <div className="flex items-center justify-between px-1">
+              <h3 className="font-bold text-base">{group.label}</h3>
+              <span className="text-xs font-semibold text-muted-foreground tracking-wider">
+                {group.date}
+              </span>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border border-border/40 overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/30">
-                  <TableHead className="font-semibold">Date</TableHead>
-                  <TableHead className="font-semibold">Category</TableHead>
-                  <TableHead className="font-semibold hidden md:table-cell">Description</TableHead>
-                  <TableHead className="font-semibold hidden lg:table-cell">Vendor</TableHead>
-                  <TableHead className="font-semibold hidden lg:table-cell">Payment</TableHead>
-                  <TableHead className="text-right font-semibold">Amount</TableHead>
-                  <TableHead className="text-right font-semibold">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredExpenses.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
-                      <div className="flex flex-col items-center gap-2">
-                        <Search className="h-8 w-8 opacity-50" />
-                        <p>No expenses found</p>
-                        <p className="text-xs">Try adjusting your search</p>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredExpenses.map((expense) => (
-                    <TableRow key={expense.id} className="hover:bg-muted/30 transition-colors">
-                      <TableCell className="font-medium">
-                        {format(new Date(expense.date), "MMM dd, yyyy")}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          style={{ backgroundColor: getCategoryColor(expense.category) }}
-                          className="text-white font-medium shadow-sm"
+            {group.items.map((expense) => {
+              const color = getCategoryColor(expense.category);
+              const t = new Date(expense.created_at);
+              return (
+                <Card
+                  key={expense.id}
+                  className="rounded-2xl p-3 border-border/40 shadow-sm flex items-center gap-3 group"
+                >
+                  <div
+                    className="w-11 h-11 rounded-xl flex items-center justify-center text-lg shrink-0"
+                    style={{ backgroundColor: `${color}22` }}
+                  >
+                    {getCategoryEmoji(expense.category)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm truncate">
+                      {expense.vendor || expense.description || expense.category}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {expense.category} · {format(t, "hh:mm a")}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <p className="font-bold text-destructive tabular-nums text-sm">
+                      -{currencySymbol}
+                      {Number(expense.amount).toFixed(2)}
+                    </p>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 ml-1">
+                          <SlidersHorizontal className="h-3.5 w-3.5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => setEditExpense(expense)}>
+                          <Edit className="h-3.5 w-3.5 mr-2" /> Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setDeleteId(expense.id)}
+                          className="text-destructive"
                         >
-                          {expense.category}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell max-w-xs truncate">
-                        {expense.description || "-"}
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell">{expense.vendor || "-"}</TableCell>
-                      <TableCell className="hidden lg:table-cell">{expense.payment_method || "-"}</TableCell>
-                      <TableCell className="text-right font-bold text-lg tabular-nums">
-                        {currencySymbol}{Number(expense.amount).toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setEditExpense(expense)}
-                            className="hover:bg-primary/10 hover:text-primary"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setDeleteId(expense.id)}
-                            className="hover:bg-destructive/10 hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                          <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </Card>
+              );
+            })}
           </div>
-        </CardContent>
-      </Card>
+        ))}
+
+        {grouped.length === 0 && (
+          <Card className="rounded-2xl p-10 text-center border-border/40">
+            <p className="text-sm text-muted-foreground">No transactions found</p>
+          </Card>
+        )}
+      </div>
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the expense.
-            </AlertDialogDescription>
+            <AlertDialogTitle>Delete this transaction?</AlertDialogTitle>
+            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
