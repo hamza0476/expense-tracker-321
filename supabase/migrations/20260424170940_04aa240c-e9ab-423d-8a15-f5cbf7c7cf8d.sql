@@ -1,0 +1,3 @@
+ALTER TABLE public.profiles 
+ADD COLUMN IF NOT EXISTS monthly_income NUMERIC DEFAULT 0,
+ADD COLUMN IF NOT EXISTS budget_alerts_enabled BOOLEAN DEFAULT true;

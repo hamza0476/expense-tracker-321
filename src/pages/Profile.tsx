@@ -1,85 +1,101 @@
 import { useEffect, useState, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Camera, Loader2, User, Check, Shield, Calendar, Palette,
-  Link2, Mail, Sun, Moon, Monitor, ChevronRight, Sparkles,
-  TrendingUp, Target, Receipt
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import {
+  Camera, Loader2, Check, Bell, Moon, Download, LogOut, ChevronRight,
+  Settings, Wallet, User, Image as ImageIcon, X,
 } from "lucide-react";
 import { useTheme } from "next-themes";
+import { CURRENCIES, getCurrencySymbol, formatCurrency } from "@/lib/currencies";
+import { formatNumber } from "@/lib/utils";
 
-interface Profile {
+interface ProfileData {
   full_name: string;
   avatar_url?: string;
   theme?: string;
+  default_currency?: string;
+  monthly_income?: number;
+  budget_alerts_enabled?: boolean;
 }
 
-const AnimatedCounter = ({ end, duration = 1200 }: { end: number; duration?: number }) => {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    if (end === 0) return;
-    let start = 0;
-    const step = Math.max(1, Math.floor(end / (duration / 16)));
-    const timer = setInterval(() => {
-      start += step;
-      if (start >= end) { setCount(end); clearInterval(timer); }
-      else setCount(start);
-    }, 16);
-    return () => clearInterval(timer);
-  }, [end, duration]);
-  return <span>{count}</span>;
-};
-
 const Profile = () => {
-  const { setTheme } = useTheme();
+  const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [savingIncome, setSavingIncome] = useState(false);
+  const [savingName, setSavingName] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const [email, setEmail] = useState("");
-  const [dragOver, setDragOver] = useState(false);
-  const [nameError, setNameError] = useState("");
-  const [profile, setProfile] = useState<Profile>({ full_name: "", avatar_url: "", theme: "system" });
-  const [stats, setStats] = useState({ expenses: 0, budgets: 0, goals: 0, memberSince: "" });
+  const [memberSince, setMemberSince] = useState<string>("");
+  const [expensesCount, setExpensesCount] = useState(0);
+  const [spentThisMonth, setSpentThisMonth] = useState(0);
+  const [budgetTotal, setBudgetTotal] = useState(0);
+  const [goals, setGoals] = useState<Array<{ id: string; title: string; current_amount: number; target_amount: number }>>([]);
+  const [editingName, setEditingName] = useState(false);
+  const [tempName, setTempName] = useState("");
+  const [editingIncome, setEditingIncome] = useState(false);
+  const [tempIncome, setTempIncome] = useState("");
+  const [profile, setProfile] = useState<ProfileData>({
+    full_name: "",
+    avatar_url: "",
+    theme: "dark",
+    default_currency: "USD",
+    monthly_income: 0,
+    budget_alerts_enabled: true,
+  });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { fetchProfile(); }, []);
+  useEffect(() => { fetchAll(); }, []);
 
-  const fetchProfile = async () => {
+  const fetchAll = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       setEmail(user.email || "");
-      setStats(s => ({ ...s, memberSince: user.created_at || "" }));
+      setMemberSince(user.created_at || "");
 
-      const [profileRes, expenseRes, budgetRes, goalRes] = await Promise.all([
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+      const [profileRes, expensesCountRes, monthExpensesRes, budgetsRes, goalsRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("user_id", user.id).single(),
         supabase.from("expenses").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-        supabase.from("budgets").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-        supabase.from("savings_goals").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+        supabase.from("expenses").select("amount").eq("user_id", user.id).gte("date", startOfMonth.split("T")[0]),
+        supabase.from("budgets").select("amount").eq("user_id", user.id).eq("year", now.getFullYear()),
+        supabase.from("savings_goals").select("id, title, current_amount, target_amount").eq("user_id", user.id).order("created_at", { ascending: false }).limit(3),
       ]);
 
       if (profileRes.data) {
+        const p = profileRes.data;
         setProfile({
-          full_name: profileRes.data.full_name || "",
-          avatar_url: profileRes.data.avatar_url || "",
-          theme: profileRes.data.theme || "system",
+          full_name: p.full_name || "",
+          avatar_url: p.avatar_url || "",
+          theme: p.theme || "dark",
+          default_currency: p.default_currency || "USD",
+          monthly_income: Number(p.monthly_income) || 0,
+          budget_alerts_enabled: p.budget_alerts_enabled !== false,
         });
-        if (profileRes.data.theme) setTheme(profileRes.data.theme);
+        setTempName(p.full_name || "");
+        setTempIncome(String(Number(p.monthly_income) || 0));
+        if (p.theme) setTheme(p.theme);
       }
-      setStats(s => ({
-        ...s,
-        expenses: expenseRes.count || 0,
-        budgets: budgetRes.count || 0,
-        goals: goalRes.count || 0,
-      }));
+      setExpensesCount(expensesCountRes.count || 0);
+      setSpentThisMonth((monthExpensesRes.data || []).reduce((sum, e: any) => sum + Number(e.amount), 0));
+      setBudgetTotal((budgetsRes.data || []).reduce((sum, b: any) => sum + Number(b.amount), 0));
+      setGoals(goalsRes.data || []);
     } catch (error) {
       console.error("Error fetching profile:", error);
       toast.error("Failed to load profile");
@@ -88,280 +104,454 @@ const Profile = () => {
     }
   };
 
+  const updateProfile = async (patch: Partial<ProfileData>) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
+    const { error } = await supabase.from("profiles").update(patch).eq("user_id", user.id);
+    if (error) throw error;
+  };
+
   const processFile = useCallback(async (file: File) => {
-    if (file.size > 5 * 1024 * 1024) { toast.error("File size must be less than 5MB"); return; }
-    if (!file.type.startsWith("image/")) { toast.error("Please upload an image file"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("File must be under 5MB"); return; }
+    if (!file.type.startsWith("image/")) { toast.error("Please select an image"); return; }
     try {
       setUploading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const fileExt = file.name.split(".").pop();
-      const filePath = `${user.id}-${Date.now()}.${fileExt}`;
+      const ext = file.name.split(".").pop();
+      const filePath = `${user.id}-${Date.now()}.${ext}`;
       if (profile.avatar_url) {
         const oldPath = profile.avatar_url.split("/").pop();
         if (oldPath) await supabase.storage.from("avatars").remove([oldPath]);
       }
-      const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, { upsert: true });
-      if (uploadError) throw uploadError;
+      const { error: upErr } = await supabase.storage.from("avatars").upload(filePath, file, { upsert: true });
+      if (upErr) throw upErr;
       const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(filePath);
-      const { error: updateError } = await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("user_id", user.id);
-      if (updateError) throw updateError;
+      await updateProfile({ avatar_url: publicUrl });
       setProfile(p => ({ ...p, avatar_url: publicUrl }));
-      toast.success("Avatar updated!");
-    } catch (error) {
-      console.error("Error uploading avatar:", error);
-      toast.error("Failed to upload avatar");
+      toast.success("Profile picture updated");
+    } catch (e) {
+      console.error(e);
+      toast.error("Upload failed");
     } finally {
       setUploading(false);
     }
   }, [profile.avatar_url]);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) processFile(file);
+    e.target.value = "";
   };
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) processFile(file);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!profile.full_name.trim()) { setNameError("Name cannot be empty"); return; }
-    if (profile.full_name.trim().length > 100) { setNameError("Name must be less than 100 characters"); return; }
-    setNameError("");
+  const handleSaveName = async () => {
+    const trimmed = tempName.trim();
+    if (!trimmed) { toast.error("Name cannot be empty"); return; }
+    if (trimmed.length > 100) { toast.error("Name too long"); return; }
     try {
-      setSaving(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { error } = await supabase.from("profiles").update({
-        full_name: profile.full_name.trim(),
-        avatar_url: profile.avatar_url,
-        theme: profile.theme,
-      }).eq("user_id", user.id);
-      if (error) throw error;
-      if (profile.theme) setTheme(profile.theme);
-      setSaved(true);
-      toast.success("Profile updated!");
-      setTimeout(() => setSaved(false), 2000);
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      toast.error("Failed to update profile");
-    } finally {
-      setSaving(false);
-    }
+      setSavingName(true);
+      await updateProfile({ full_name: trimmed });
+      setProfile(p => ({ ...p, full_name: trimmed }));
+      setEditingName(false);
+      toast.success("Name updated");
+    } catch { toast.error("Failed to save"); }
+    finally { setSavingName(false); }
   };
 
-  const completeness = [
-    !!profile.full_name,
-    !!profile.avatar_url,
-    !!email,
-    !!profile.theme && profile.theme !== "system",
-  ].filter(Boolean).length * 25;
+  const handleSaveIncome = async () => {
+    const value = Number(tempIncome);
+    if (isNaN(value) || value < 0) { toast.error("Enter a valid amount"); return; }
+    try {
+      setSavingIncome(true);
+      await updateProfile({ monthly_income: value });
+      setProfile(p => ({ ...p, monthly_income: value }));
+      setEditingIncome(false);
+      toast.success("Monthly income updated");
+    } catch { toast.error("Failed to save"); }
+    finally { setSavingIncome(false); }
+  };
+
+  const handleCurrencyChange = async (newCurrency: string) => {
+    try {
+      await updateProfile({ default_currency: newCurrency });
+      setProfile(p => ({ ...p, default_currency: newCurrency }));
+      toast.success("Currency updated");
+      setTimeout(() => window.location.reload(), 600);
+    } catch { toast.error("Failed to update currency"); }
+  };
+
+  const handleAlertsToggle = async (enabled: boolean) => {
+    setProfile(p => ({ ...p, budget_alerts_enabled: enabled }));
+    try { await updateProfile({ budget_alerts_enabled: enabled }); }
+    catch { setProfile(p => ({ ...p, budget_alerts_enabled: !enabled })); toast.error("Failed to update"); }
+  };
+
+  const handleDarkModeToggle = async (enabled: boolean) => {
+    const newTheme = enabled ? "dark" : "light";
+    setTheme(newTheme);
+    setProfile(p => ({ ...p, theme: newTheme }));
+    try { await updateProfile({ theme: newTheme }); }
+    catch { /* silent */ }
+  };
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    await supabase.auth.signOut();
+    toast.success("Signed out");
+    navigate("/splash");
+  };
+
+  const currency = profile.default_currency || "USD";
+  const symbol = getCurrencySymbol(currency);
+  const income = profile.monthly_income || 0;
+  const saved = Math.max(0, income - spentThisMonth);
+  const savingsRate = income > 0 ? Math.round((saved / income) * 100) : 0;
+  const onBudgetPct = budgetTotal > 0 ? Math.max(0, Math.min(100, Math.round(((budgetTotal - spentThisMonth) / budgetTotal) * 100))) : 0;
+  const memberLabel = memberSince
+    ? `Since ${new Date(memberSince).toLocaleDateString("en-US", { month: "short", year: "numeric" })}`
+    : "—";
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto space-y-4 p-4 animate-fade-in">
-        <Skeleton className="h-36 w-full rounded-2xl" />
-        <div className="flex flex-col items-center -mt-12 space-y-3">
-          <Skeleton className="h-24 w-24 rounded-full" />
-          <Skeleton className="h-5 w-32" />
+      <div className="max-w-md mx-auto space-y-3 px-1 animate-fade-in">
+        <Skeleton className="h-20 w-full rounded-2xl" />
+        <div className="grid grid-cols-3 gap-2">
+          <Skeleton className="h-16 rounded-xl" />
+          <Skeleton className="h-16 rounded-xl" />
+          <Skeleton className="h-16 rounded-xl" />
         </div>
-        <Skeleton className="h-48 w-full rounded-2xl" />
-        <div className="grid grid-cols-2 gap-3">
-          <Skeleton className="h-24 rounded-xl" />
-          <Skeleton className="h-24 rounded-xl" />
-          <Skeleton className="h-24 rounded-xl" />
-          <Skeleton className="h-24 rounded-xl" />
-        </div>
+        <Skeleton className="h-44 w-full rounded-2xl" />
+        <Skeleton className="h-32 w-full rounded-2xl" />
+        <Skeleton className="h-56 w-full rounded-2xl" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto pb-6 space-y-5 animate-fade-in">
-      {/* Cover + Avatar */}
-      <div className="relative">
-        <div className="h-36 rounded-b-3xl bg-gradient-to-br from-primary via-accent to-primary animate-gradient overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,hsl(var(--primary)/0.4),transparent_60%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,hsl(var(--accent)/0.3),transparent_50%)]" />
-        </div>
-        <div className="flex flex-col items-center -mt-14 relative z-10">
-          <div
-            className={`relative group cursor-pointer ${dragOver ? "scale-105" : ""} transition-transform duration-200`}
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={handleDrop}
+    <div className="max-w-md mx-auto pb-4 space-y-4 animate-fade-in">
+      {/* Header row */}
+      <div className="flex items-center justify-between px-1">
+        <h1 className="text-xl font-bold tracking-tight">Profile</h1>
+        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-muted/60 hover:bg-muted">
+          <Settings className="h-4 w-4 text-muted-foreground" />
+        </Button>
+      </div>
+
+      {/* Avatar + Name row */}
+      <div className="flex items-center gap-3 px-1">
+        <div className="relative shrink-0">
+          <div className="p-[2px] rounded-full bg-gradient-to-br from-primary to-accent">
+            <Avatar className="h-20 w-20 border-2 border-background">
+              <AvatarImage src={profile.avatar_url} alt={profile.full_name} className="object-cover" />
+              <AvatarFallback className="text-xl font-bold bg-gradient-to-br from-primary to-accent text-primary-foreground">
+                {(profile.full_name || email).slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+          <button
+            type="button"
             onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            aria-label="Change profile picture"
+            className="absolute -bottom-0.5 -right-0.5 h-7 w-7 rounded-full bg-success text-success-foreground border-2 border-background flex items-center justify-center shadow-md active:scale-95 transition-transform"
           >
-            <div className="p-[3px] rounded-full bg-gradient-to-br from-primary via-accent to-primary shadow-lg">
-              <Avatar className="h-28 w-28 border-[3px] border-background">
-                <AvatarImage src={profile.avatar_url} alt={profile.full_name} className="object-cover transition-opacity duration-300" />
-                <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-primary to-accent text-primary-foreground">
-                  {profile.full_name.charAt(0)?.toUpperCase() || email.charAt(0)?.toUpperCase() || "?"}
-                </AvatarFallback>
-              </Avatar>
+            {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <button
+            onClick={() => { setTempName(profile.full_name); setEditingName(true); }}
+            className="text-left w-full"
+          >
+            <h2 className="text-lg font-bold truncate hover:text-primary transition-colors">
+              {profile.full_name || "Add your name"}
+            </h2>
+          </button>
+          <p className="text-xs text-muted-foreground truncate">{email}</p>
+          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+            <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-success/15 text-success border border-success/30">
+              Pro member
+            </span>
+            <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-muted/60 text-muted-foreground border border-border/50">
+              {memberLabel}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Hidden file input for upload from gallery (desktop) */}
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        className="hidden"
+        id="avatar-gallery-input"
+      />
+
+      {/* Stat row */}
+      <div className="grid grid-cols-3 gap-2 px-1">
+        <Card className="border-border/40 bg-card/60 backdrop-blur shadow-sm">
+          <CardContent className="p-3 flex flex-col items-center text-center">
+            <span className="text-lg font-bold tabular-nums">{formatNumber(expensesCount)}</span>
+            <span className="text-[10px] uppercase tracking-wide text-muted-foreground mt-0.5">Expenses</span>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40 bg-card/60 backdrop-blur shadow-sm">
+          <CardContent className="p-3 flex flex-col items-center text-center">
+            <span className="text-lg font-bold tabular-nums text-success">{onBudgetPct}%</span>
+            <span className="text-[10px] uppercase tracking-wide text-muted-foreground mt-0.5">On budget</span>
+          </CardContent>
+        </Card>
+        <Card className="border-border/40 bg-card/60 backdrop-blur shadow-sm">
+          <CardContent className="p-3 flex flex-col items-center text-center">
+            <span className="text-lg font-bold">{currency}</span>
+            <span className="text-[10px] uppercase tracking-wide text-muted-foreground mt-0.5">Currency</span>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* FINANCIAL OVERVIEW */}
+      <div className="px-1">
+        <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+          Financial Overview
+        </h3>
+        <Card className="border-border/40 shadow-sm">
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm text-muted-foreground">Monthly income</span>
+              <button
+                onClick={() => { setTempIncome(String(income)); setEditingIncome(true); }}
+                className="text-sm font-bold tabular-nums hover:text-primary transition-colors text-right"
+              >
+                {formatCurrency(income, currency)}
+              </button>
             </div>
-            <div className="absolute inset-0 rounded-full flex items-center justify-center bg-foreground/0 group-hover:bg-foreground/40 transition-colors duration-200">
-              <Camera className="h-6 w-6 text-primary-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm text-muted-foreground">Spent this month</span>
+              <span className="text-sm font-bold tabular-nums text-destructive">
+                {formatCurrency(spentThisMonth, currency)}
+              </span>
             </div>
-            {uploading && (
-              <div className="absolute inset-0 rounded-full flex items-center justify-center bg-foreground/50">
-                <Loader2 className="h-7 w-7 animate-spin text-primary-foreground" />
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm text-muted-foreground">Saved this month</span>
+              <span className="text-sm font-bold tabular-nums text-success">
+                {formatCurrency(saved, currency)}
+              </span>
+            </div>
+            <div className="pt-1 space-y-1.5">
+              <Progress value={savingsRate} className="h-1.5" />
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Savings rate</span>
+                <span className="text-xs font-bold tabular-nums text-success">{savingsRate}%</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* GOALS */}
+      <div className="px-1">
+        <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+          Goals
+        </h3>
+        <Card className="border-border/40 shadow-sm">
+          <CardContent className="p-4">
+            {goals.length === 0 ? (
+              <button
+                onClick={() => navigate("/savings-goals")}
+                className="w-full py-3 text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                + Add your first savings goal
+              </button>
+            ) : (
+              <div className="space-y-3">
+                {goals.map((g) => {
+                  const pct = g.target_amount > 0
+                    ? Math.min(100, Math.round((Number(g.current_amount) / Number(g.target_amount)) * 100))
+                    : 0;
+                  const barColor = pct >= 75 ? "bg-success" : pct >= 40 ? "bg-primary" : "bg-warning";
+                  return (
+                    <button
+                      key={g.id}
+                      onClick={() => navigate("/savings-goals")}
+                      className="w-full text-left group"
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-1.5">
+                        <span className="text-sm font-semibold truncate group-hover:text-primary transition-colors">
+                          {g.title}
+                        </span>
+                        <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap">
+                          {symbol}{formatNumber(Number(g.current_amount) / 1000, { decimals: 0 })}k / {formatNumber(Number(g.target_amount) / 1000, { decimals: 0 })}k
+                        </span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                        <div className={`h-full ${barColor} transition-all duration-500`} style={{ width: `${pct}%` }} />
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             )}
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} disabled={uploading} className="hidden" />
-          </div>
-          <h2 className="mt-3 text-xl font-bold">{profile.full_name || "Your Name"}</h2>
-          <p className="text-sm text-muted-foreground">{email}</p>
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Profile Completeness */}
-      <Card className="mx-4 border-border/40 shadow-md">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">Profile Completeness</span>
-            </div>
-            <span className="text-sm font-bold text-primary">{completeness}%</span>
-          </div>
-          <Progress value={completeness} className="h-2" />
-          {completeness < 100 && (
-            <p className="text-xs text-muted-foreground mt-2">
-              {!profile.full_name && "Add your name • "}
-              {!profile.avatar_url && "Upload a photo • "}
-              {profile.theme === "system" && "Choose a theme"}
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Form */}
-      <Card className="mx-4 border-border/40 shadow-md">
-        <CardContent className="p-4">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Full Name */}
-            <div className="relative">
-              <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                value={profile.full_name}
-                onChange={(e) => {
-                  setProfile({ ...profile, full_name: e.target.value });
-                  if (nameError) setNameError("");
-                }}
-                placeholder="Full Name"
-                className={`pl-10 h-11 ${nameError ? "border-destructive focus-visible:ring-destructive" : ""}`}
-              />
-              {nameError && <p className="text-xs text-destructive mt-1">{nameError}</p>}
-            </div>
-
-            {/* Email */}
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input value={email} disabled placeholder="Email" className="pl-10 h-11 bg-muted/50" />
-            </div>
-
-            {/* Theme */}
-            <div>
-              <label className="text-sm font-medium mb-2 block text-muted-foreground">Theme</label>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { value: "light", label: "Light", icon: Sun },
-                  { value: "dark", label: "Dark", icon: Moon },
-                  { value: "system", label: "System", icon: Monitor },
-                ].map(({ value, label, icon: Icon }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setProfile({ ...profile, theme: value })}
-                    className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-200 ${
-                      profile.theme === value
-                        ? "border-primary bg-primary/10 shadow-sm"
-                        : "border-border hover:border-primary/40 hover:bg-muted/50"
-                    }`}
-                  >
-                    <Icon className={`h-5 w-5 ${profile.theme === value ? "text-primary" : "text-muted-foreground"}`} />
-                    <span className={`text-xs font-medium ${profile.theme === value ? "text-primary" : "text-muted-foreground"}`}>
-                      {label}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Save Button */}
-            <Button
-              type="submit"
-              disabled={saving || saved}
-              className={`w-full h-12 text-base font-semibold rounded-xl transition-all duration-300 ${
-                saved ? "bg-success hover:bg-success" : ""
-              }`}
-            >
-              {saving ? (
-                <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Saving...</>
-              ) : saved ? (
-                <><Check className="mr-2 h-5 w-5" /> Saved!</>
-              ) : (
-                "Save Changes"
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-3 px-4">
-        {[
-          { icon: Receipt, label: "Expenses", value: stats.expenses, color: "text-primary" },
-          { icon: Target, label: "Budgets", value: stats.budgets, color: "text-accent" },
-          { icon: TrendingUp, label: "Goals", value: stats.goals, color: "text-success" },
-          { icon: Calendar, label: "Member Since", value: 0, color: "text-warning",
-            display: stats.memberSince
-              ? new Date(stats.memberSince).toLocaleDateString("en-US", { month: "short", year: "numeric" })
-              : "—" },
-        ].map(({ icon: Icon, label, value, color, display }, i) => (
-          <Card
-            key={label}
-            className="border-border/40 shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-default"
-            style={{ animationDelay: `${i * 80}ms` }}
-          >
-            <CardContent className="p-4 flex flex-col items-center text-center gap-1.5">
-              <div className={`p-2 rounded-xl bg-muted/60`}>
-                <Icon className={`h-5 w-5 ${color}`} />
-              </div>
-              <span className="text-xs text-muted-foreground">{label}</span>
-              <span className="text-lg font-bold">
-                {display ?? <AnimatedCounter end={value} />}
-              </span>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Account Info */}
-      <Card className="mx-4 border-border/40 shadow-md">
-        <CardContent className="p-0">
-          {[
-            { icon: Shield, label: "Account Status", value: "Active", valueColor: "text-success" },
-            { icon: Palette, label: "Current Theme", value: profile.theme || "system", valueColor: "text-primary capitalize" },
-          ].map(({ icon: Icon, label, value, valueColor }, i) => (
-            <div key={label} className={`flex items-center justify-between p-4 ${i > 0 ? "border-t border-border/40" : ""}`}>
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-muted/60">
-                  <Icon className="h-4 w-4 text-muted-foreground" />
+      {/* PREFERENCES */}
+      <div className="px-1">
+        <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+          Preferences
+        </h3>
+        <Card className="border-border/40 shadow-sm overflow-hidden">
+          <CardContent className="p-0 divide-y divide-border/40">
+            {/* Default currency */}
+            <div className="flex items-center justify-between gap-3 p-3.5">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="h-9 w-9 rounded-xl bg-success/15 flex items-center justify-center shrink-0">
+                  <Wallet className="h-4 w-4 text-success" />
                 </div>
-                <span className="text-sm">{label}</span>
+                <span className="text-sm font-medium truncate">Default currency</span>
               </div>
-              <span className={`text-sm font-semibold ${valueColor}`}>{value}</span>
+              <Select value={currency} onValueChange={handleCurrencyChange}>
+                <SelectTrigger className="w-auto h-8 border-0 bg-transparent px-2 gap-1 text-sm font-semibold text-muted-foreground hover:text-foreground focus:ring-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent align="end">
+                  {CURRENCIES.map(c => (
+                    <SelectItem key={c.code} value={c.code}>
+                      <span className="flex items-center gap-2">
+                        <span>{c.flag}</span><span>{c.code}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          ))}
-        </CardContent>
-      </Card>
+
+            {/* Budget alerts */}
+            <div className="flex items-center justify-between gap-3 p-3.5">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="h-9 w-9 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                  <Bell className="h-4 w-4 text-primary" />
+                </div>
+                <span className="text-sm font-medium truncate">Budget alerts</span>
+              </div>
+              <Switch
+                checked={!!profile.budget_alerts_enabled}
+                onCheckedChange={handleAlertsToggle}
+              />
+            </div>
+
+            {/* Dark mode */}
+            <div className="flex items-center justify-between gap-3 p-3.5">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="h-9 w-9 rounded-xl bg-destructive/15 flex items-center justify-center shrink-0">
+                  <Moon className="h-4 w-4 text-destructive" />
+                </div>
+                <span className="text-sm font-medium truncate">Dark mode</span>
+              </div>
+              <Switch
+                checked={theme === "dark"}
+                onCheckedChange={handleDarkModeToggle}
+              />
+            </div>
+
+            {/* Export data */}
+            <button
+              onClick={() => navigate("/data-export")}
+              className="w-full flex items-center justify-between gap-3 p-3.5 hover:bg-muted/40 transition-colors active:bg-muted/60"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="h-9 w-9 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                  <Download className="h-4 w-4 text-primary" />
+                </div>
+                <span className="text-sm font-medium">Export data</span>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </button>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Sign out */}
+      <div className="px-1">
+        <button
+          onClick={handleSignOut}
+          disabled={signingOut}
+          className="w-full flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-destructive/10 hover:bg-destructive/15 active:bg-destructive/20 border border-destructive/30 transition-colors disabled:opacity-60"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-destructive/20 flex items-center justify-center">
+              {signingOut ? (
+                <Loader2 className="h-4 w-4 text-destructive animate-spin" />
+              ) : (
+                <LogOut className="h-4 w-4 text-destructive" />
+              )}
+            </div>
+            <span className="text-sm font-semibold text-destructive">Sign out</span>
+          </div>
+          <ChevronRight className="h-4 w-4 text-destructive" />
+        </button>
+      </div>
+
+      {/* Edit Name Dialog */}
+      <Dialog open={editingName} onOpenChange={setEditingName}>
+        <DialogContent className="max-w-sm rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit name</DialogTitle>
+          </DialogHeader>
+          <Input
+            value={tempName}
+            onChange={(e) => setTempName(e.target.value)}
+            placeholder="Your full name"
+            maxLength={100}
+            autoFocus
+          />
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setEditingName(false)} className="rounded-xl">Cancel</Button>
+            <Button onClick={handleSaveName} disabled={savingName} className="rounded-xl">
+              {savingName ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Check className="h-4 w-4 mr-1" />Save</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Income Dialog */}
+      <Dialog open={editingIncome} onOpenChange={setEditingIncome}>
+        <DialogContent className="max-w-sm rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Monthly income</DialogTitle>
+          </DialogHeader>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">
+              {symbol}
+            </span>
+            <Input
+              type="number"
+              inputMode="decimal"
+              value={tempIncome}
+              onChange={(e) => setTempIncome(e.target.value)}
+              placeholder="0"
+              className="pl-8"
+              autoFocus
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setEditingIncome(false)} className="rounded-xl">Cancel</Button>
+            <Button onClick={handleSaveIncome} disabled={savingIncome} className="rounded-xl">
+              {savingIncome ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Check className="h-4 w-4 mr-1" />Save</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
