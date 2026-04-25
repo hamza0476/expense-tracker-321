@@ -198,10 +198,10 @@ const RecurringExpenses = () => {
             )}
           </div>
           <button
-            onClick={() => setSortByDate(true)}
+            onClick={() => setView((v) => (v === "list" ? "calendar" : "list"))}
             className="text-[11px] font-semibold tracking-wider uppercase bg-primary-foreground/20 hover:bg-primary-foreground/30 transition-colors px-3 py-1.5 rounded-md"
           >
-            View Calendar
+            {view === "list" ? "View Calendar" : "View List"}
           </button>
         </div>
       </Card>
