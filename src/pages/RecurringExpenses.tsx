@@ -221,71 +221,86 @@ const RecurringExpenses = () => {
         </Card>
       )}
 
-      {/* Active Subscriptions header */}
-      <div className="flex items-center justify-between pt-1">
-        <h2 className="text-lg font-bold text-foreground">Active Subscriptions</h2>
-        <button
-          onClick={() => setSortByDate((s) => !s)}
-          className="text-[11px] font-semibold tracking-wider uppercase text-primary"
-        >
-          Sort by Date
-        </button>
-      </div>
-
-      {/* Subscription list */}
-      <div className="space-y-2.5">
-        {sortedActive.length === 0 && (
-          <Card className="p-8 text-center rounded-xl border-dashed">
-            <Repeat className="h-10 w-10 mx-auto text-muted-foreground/60 mb-3" />
-            <p className="text-sm text-muted-foreground mb-4">No recurring payments yet.</p>
-            <Button onClick={() => navigate("/recurring-expenses/new")} size="sm">
-              <Plus className="h-4 w-4 mr-1.5" /> Add subscription
-            </Button>
-          </Card>
-        )}
-
-        {sortedActive.map((e) => {
-          const { Icon, bg, color } = getIcon(e.description, e.category);
-          const next = getNextBillingDate(e.start_date, e.frequency, e.last_processed_date);
-          return (
-            <Card
-              key={e.id}
-              className="p-3 rounded-xl border border-border/60 shadow-sm hover:shadow-md transition-shadow"
+      {view === "calendar" ? (
+        <RecurringCalendar
+          items={active}
+          symbol={symbol}
+          monthlyEquivalent={monthlyEquivalent}
+          onSelectItem={(id) => navigate(`/recurring-expenses/edit/${id}`)}
+        />
+      ) : (
+        <>
+          {/* Active Subscriptions header */}
+          <div className="flex items-center justify-between pt-1">
+            <h2 className="text-lg font-bold text-foreground">Active Subscriptions</h2>
+            <button
+              onClick={() => setSortByDate((s) => !s)}
+              className="text-[11px] font-semibold tracking-wider uppercase text-primary"
             >
-              <div className="flex items-center gap-3">
-                <div className={`w-11 h-11 rounded-xl ${bg} ${color} flex items-center justify-center shrink-0`}>
-                  <Icon className="h-5 w-5" />
-                </div>
+              Sort by Date
+            </button>
+          </div>
 
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-foreground truncate">{e.description}</p>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                    <Calendar className="h-3 w-3" />
-                    <span>Next: {formatNextDate(next)}</span>
-                  </div>
-                </div>
+          {/* Subscription list */}
+          <div className="space-y-2.5">
+            {sortedActive.length === 0 && (
+              <Card className="p-8 text-center rounded-xl border-dashed">
+                <Repeat className="h-10 w-10 mx-auto text-muted-foreground/60 mb-3" />
+                <p className="text-sm text-muted-foreground mb-4">No recurring payments yet.</p>
+                <Button onClick={() => navigate("/recurring-expenses/new")} size="sm">
+                  <Plus className="h-4 w-4 mr-1.5" /> Add subscription
+                </Button>
+              </Card>
+            )}
 
-                <div className="text-right shrink-0">
-                  <p className="font-bold text-foreground tabular-nums">
-                    {formatCurrencyStrict(Number(e.amount), symbol, 2)}
-                  </p>
-                  <span className="inline-block mt-1 text-[10px] font-bold tracking-wider uppercase bg-[hsl(var(--chart-3)/0.15)] text-[hsl(var(--chart-3))] px-2 py-0.5 rounded">
-                    {e.frequency}
-                  </span>
-                </div>
-
-                <button
-                  onClick={() => deleteExpense(e.id)}
-                  className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors shrink-0"
-                  aria-label="Delete"
+            {sortedActive.map((e) => {
+              const { Icon, bg, color } = getIcon(e.description, e.category);
+              const next = getNextBillingDate(e.start_date, e.frequency, e.last_processed_date);
+              return (
+                <Card
+                  key={e.id}
+                  className="p-3 rounded-xl border border-border/60 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => navigate(`/recurring-expenses/edit/${e.id}`)}
                 >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-11 h-11 rounded-xl ${bg} ${color} flex items-center justify-center shrink-0`}>
+                      <Icon className="h-5 w-5" />
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-foreground truncate">{e.description}</p>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
+                        <Calendar className="h-3 w-3" />
+                        <span>Next: {formatNextDate(next)}</span>
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <p className="font-bold text-foreground tabular-nums">
+                        {formatCurrencyStrict(Number(e.amount), symbol, 2)}
+                      </p>
+                      <span className="inline-block mt-1 text-[10px] font-bold tracking-wider uppercase bg-[hsl(var(--chart-3)/0.15)] text-[hsl(var(--chart-3))] px-2 py-0.5 rounded">
+                        {e.frequency}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={(ev) => {
+                        ev.stopPropagation();
+                        deleteExpense(e.id);
+                      }}
+                      className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                      aria-label="Delete"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </>
+      )}
 
       {/* Insight cards */}
       <div className="grid grid-cols-2 gap-3 pt-1">
