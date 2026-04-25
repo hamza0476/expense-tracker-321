@@ -14,9 +14,9 @@ import { pushNotificationService } from "@/services/pushNotifications";
 import { ReceiptScanner } from "@/components/ReceiptScanner";
 import { getCurrencySymbol } from "@/lib/currencies";
 import { cn } from "@/lib/utils";
-import { Utensils, ShoppingBag, Car, Home, Film, Heart, Zap, MoreHorizontal } from "lucide-react";
+import { Utensils, ShoppingBag, Car, Home, Film, Heart, Zap, MoreHorizontal, Banknote, Tag as TagIcon, Briefcase } from "lucide-react";
 
-const QUICK_CATEGORIES = [
+const EXPENSE_QUICK = [
   { value: "Dining", label: "Food", Icon: Utensils },
   { value: "Shopping", label: "Shop", Icon: ShoppingBag },
   { value: "Transport", label: "Travel", Icon: Car },
@@ -24,6 +24,13 @@ const QUICK_CATEGORIES = [
   { value: "Entertainment", label: "Fun", Icon: Film },
   { value: "Health", label: "Health", Icon: Heart },
   { value: "Utilities", label: "Bills", Icon: Zap },
+  { value: "Other", label: "Other", Icon: MoreHorizontal },
+];
+
+const INCOME_QUICK = [
+  { value: "Salary", label: "Salary", Icon: Banknote },
+  { value: "Selling", label: "Selling", Icon: TagIcon },
+  { value: "Business", label: "Business", Icon: Briefcase },
   { value: "Other", label: "Other", Icon: MoreHorizontal },
 ];
 
@@ -210,7 +217,12 @@ const AddExpense = () => {
         <div className="bg-muted/60 rounded-full p-1 grid grid-cols-2">
           <button
             type="button"
-            onClick={() => setType("expense")}
+            onClick={() => {
+              setType("expense");
+              if (!EXPENSE_QUICK.some((c) => c.value === formData.category)) {
+                setFormData((f) => ({ ...f, category: "Dining" }));
+              }
+            }}
             className={cn(
               "h-10 rounded-full font-bold text-xs uppercase tracking-wider transition-all",
               type === "expense"
@@ -222,7 +234,12 @@ const AddExpense = () => {
           </button>
           <button
             type="button"
-            onClick={() => setType("income")}
+            onClick={() => {
+              setType("income");
+              if (!INCOME_QUICK.some((c) => c.value === formData.category)) {
+                setFormData((f) => ({ ...f, category: "Salary" }));
+              }
+            }}
             className={cn(
               "h-10 rounded-full font-bold text-xs uppercase tracking-wider transition-all",
               type === "income"
@@ -251,7 +268,7 @@ const AddExpense = () => {
             </Button>
           </div>
           <div className="grid grid-cols-4 gap-3">
-            {QUICK_CATEGORIES.map((c) => {
+            {(type === "income" ? INCOME_QUICK : EXPENSE_QUICK).map((c) => {
               const active = formData.category === c.value;
               return (
                 <button

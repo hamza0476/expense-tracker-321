@@ -68,21 +68,26 @@ const Dashboard = () => {
   const lastMonthStart = startOfMonth(subMonths(now, 1));
   const lastMonthEnd = endOfMonth(subMonths(now, 1));
 
+  const inMonth = (e: Expense, start: Date, end: Date) => {
+    const d = new Date(e.date);
+    return d >= start && d <= end;
+  };
+
   const monthlyExpense = expenses
-    .filter((e) => {
-      const d = new Date(e.date);
-      return d >= monthStart && d <= monthEnd;
-    })
+    .filter((e) => inMonth(e, monthStart, monthEnd) && Number(e.amount) > 0)
     .reduce((s, e) => s + Number(e.amount), 0);
+
+  const monthlyIncomeTxn = expenses
+    .filter((e) => inMonth(e, monthStart, monthEnd) && Number(e.amount) < 0)
+    .reduce((s, e) => s + Math.abs(Number(e.amount)), 0);
+
+  const totalIncome = income + monthlyIncomeTxn;
 
   const lastMonthExpense = expenses
-    .filter((e) => {
-      const d = new Date(e.date);
-      return d >= lastMonthStart && d <= lastMonthEnd;
-    })
+    .filter((e) => inMonth(e, lastMonthStart, lastMonthEnd) && Number(e.amount) > 0)
     .reduce((s, e) => s + Number(e.amount), 0);
 
-  const totalBalance = income - monthlyExpense;
+  const totalBalance = totalIncome - monthlyExpense;
   const trendPct =
     lastMonthExpense > 0
       ? ((monthlyExpense - lastMonthExpense) / lastMonthExpense) * 100
@@ -95,7 +100,7 @@ const Dashboard = () => {
   const weeklyData = weekDays.map((day) => {
     const dayKey = format(day, "yyyy-MM-dd");
     const total = expenses
-      .filter((e) => e.date === dayKey)
+      .filter((e) => e.date === dayKey && Number(e.amount) > 0)
       .reduce((s, e) => s + Number(e.amount), 0);
     return {
       label: format(day, "EEE").toUpperCase(),
@@ -170,7 +175,7 @@ const Dashboard = () => {
           </div>
           <p className="text-xl font-bold tabular-nums mt-2">
             {currencySymbol}
-            {income.toLocaleString()}
+            {totalIncome.toLocaleString(undefined, { maximumFractionDigits: 0 })}
           </p>
         </Card>
         <Card className="rounded-2xl p-3 border-border/40 shadow-sm">
@@ -237,6 +242,8 @@ const Dashboard = () => {
       <div className="space-y-2">
         {expenses.slice(0, 5).map((expense) => {
           const color = getCategoryColor(expense.category);
+          const amt = Number(expense.amount);
+          const isIncome = amt < 0;
           return (
             <Card
               key={expense.id}
@@ -256,9 +263,9 @@ const Dashboard = () => {
                   {formatTransactionDate(expense.date, expense.created_at)}
                 </p>
               </div>
-              <p className="font-bold text-destructive tabular-nums text-sm">
-                -{currencySymbol}
-                {Number(expense.amount).toFixed(2)}
+              <p className={cn("font-bold tabular-nums text-sm", isIncome ? "text-success" : "text-destructive")}>
+                {isIncome ? "+" : "-"}{currencySymbol}
+                {Math.abs(amt).toFixed(2)}
               </p>
             </Card>
           );
