@@ -217,7 +217,12 @@ const AddExpense = () => {
         <div className="bg-muted/60 rounded-full p-1 grid grid-cols-2">
           <button
             type="button"
-            onClick={() => setType("expense")}
+            onClick={() => {
+              setType("expense");
+              if (!EXPENSE_QUICK.some((c) => c.value === formData.category)) {
+                setFormData((f) => ({ ...f, category: "Dining" }));
+              }
+            }}
             className={cn(
               "h-10 rounded-full font-bold text-xs uppercase tracking-wider transition-all",
               type === "expense"
