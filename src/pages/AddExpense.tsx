@@ -229,7 +229,12 @@ const AddExpense = () => {
           </button>
           <button
             type="button"
-            onClick={() => setType("income")}
+            onClick={() => {
+              setType("income");
+              if (!INCOME_QUICK.some((c) => c.value === formData.category)) {
+                setFormData((f) => ({ ...f, category: "Salary" }));
+              }
+            }}
             className={cn(
               "h-10 rounded-full font-bold text-xs uppercase tracking-wider transition-all",
               type === "income"
