@@ -10,8 +10,9 @@ import {
   Repeat, ArrowUpRight,
 } from "lucide-react";
 import { getCurrencySymbol } from "@/lib/currencies";
-import { formatCurrencyStrict } from "@/lib/utils";
+import { formatCurrencyStrict, cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import RecurringCalendar from "@/components/RecurringCalendar";
 
 interface RecurringExpense {
   id: string;
@@ -75,6 +76,7 @@ const RecurringExpenses = () => {
   const [loading, setLoading] = useState(true);
   const [currency, setCurrency] = useState("USD");
   const [sortByDate, setSortByDate] = useState(true);
+  const [view, setView] = useState<"list" | "calendar">("list");
 
   useEffect(() => {
     fetchData();
