@@ -268,7 +268,7 @@ const AddExpense = () => {
             </Button>
           </div>
           <div className="grid grid-cols-4 gap-3">
-            {QUICK_CATEGORIES.map((c) => {
+            {(type === "income" ? INCOME_QUICK : EXPENSE_QUICK).map((c) => {
               const active = formData.category === c.value;
               return (
                 <button
