@@ -100,7 +100,7 @@ const Dashboard = () => {
   const weeklyData = weekDays.map((day) => {
     const dayKey = format(day, "yyyy-MM-dd");
     const total = expenses
-      .filter((e) => e.date === dayKey)
+      .filter((e) => e.date === dayKey && Number(e.amount) > 0)
       .reduce((s, e) => s + Number(e.amount), 0);
     return {
       label: format(day, "EEE").toUpperCase(),
