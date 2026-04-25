@@ -175,7 +175,7 @@ const Dashboard = () => {
           </div>
           <p className="text-xl font-bold tabular-nums mt-2">
             {currencySymbol}
-            {income.toLocaleString()}
+            {totalIncome.toLocaleString(undefined, { maximumFractionDigits: 0 })}
           </p>
         </Card>
         <Card className="rounded-2xl p-3 border-border/40 shadow-sm">
