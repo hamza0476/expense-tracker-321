@@ -68,21 +68,26 @@ const Dashboard = () => {
   const lastMonthStart = startOfMonth(subMonths(now, 1));
   const lastMonthEnd = endOfMonth(subMonths(now, 1));
 
+  const inMonth = (e: Expense, start: Date, end: Date) => {
+    const d = new Date(e.date);
+    return d >= start && d <= end;
+  };
+
   const monthlyExpense = expenses
-    .filter((e) => {
-      const d = new Date(e.date);
-      return d >= monthStart && d <= monthEnd;
-    })
+    .filter((e) => inMonth(e, monthStart, monthEnd) && Number(e.amount) > 0)
     .reduce((s, e) => s + Number(e.amount), 0);
+
+  const monthlyIncomeTxn = expenses
+    .filter((e) => inMonth(e, monthStart, monthEnd) && Number(e.amount) < 0)
+    .reduce((s, e) => s + Math.abs(Number(e.amount)), 0);
+
+  const totalIncome = income + monthlyIncomeTxn;
 
   const lastMonthExpense = expenses
-    .filter((e) => {
-      const d = new Date(e.date);
-      return d >= lastMonthStart && d <= lastMonthEnd;
-    })
+    .filter((e) => inMonth(e, lastMonthStart, lastMonthEnd) && Number(e.amount) > 0)
     .reduce((s, e) => s + Number(e.amount), 0);
 
-  const totalBalance = income - monthlyExpense;
+  const totalBalance = totalIncome - monthlyExpense;
   const trendPct =
     lastMonthExpense > 0
       ? ((monthlyExpense - lastMonthExpense) / lastMonthExpense) * 100
