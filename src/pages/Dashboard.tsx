@@ -242,6 +242,8 @@ const Dashboard = () => {
       <div className="space-y-2">
         {expenses.slice(0, 5).map((expense) => {
           const color = getCategoryColor(expense.category);
+          const amt = Number(expense.amount);
+          const isIncome = amt < 0;
           return (
             <Card
               key={expense.id}
@@ -261,9 +263,9 @@ const Dashboard = () => {
                   {formatTransactionDate(expense.date, expense.created_at)}
                 </p>
               </div>
-              <p className="font-bold text-destructive tabular-nums text-sm">
-                -{currencySymbol}
-                {Number(expense.amount).toFixed(2)}
+              <p className={cn("font-bold tabular-nums text-sm", isIncome ? "text-success" : "text-destructive")}>
+                {isIncome ? "+" : "-"}{currencySymbol}
+                {Math.abs(amt).toFixed(2)}
               </p>
             </Card>
           );
