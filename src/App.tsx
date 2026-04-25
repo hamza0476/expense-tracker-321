@@ -13,6 +13,7 @@ import Budgets from "./pages/Budgets";
 import Profile from "./pages/Profile";
 import RecurringExpenses from "./pages/RecurringExpenses";
 import AddRecurringExpense from "./pages/AddRecurringExpense";
+import EditRecurringExpense from "./pages/EditRecurringExpense";
 import CreateBudget from "./pages/CreateBudget";
 import AIAssistant from "./pages/AIAssistant";
 import DataExport from "./pages/DataExport";
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/budgets/new" element={<Layout><CreateBudget /></Layout>} />
           <Route path="/recurring-expenses" element={<Layout><RecurringExpenses /></Layout>} />
           <Route path="/recurring-expenses/new" element={<Layout><AddRecurringExpense /></Layout>} />
+          <Route path="/recurring-expenses/edit/:id" element={<Layout><EditRecurringExpense /></Layout>} />
           <Route path="/ai-assistant" element={<Layout><AIAssistant /></Layout>} />
           <Route path="/savings-goals" element={<Layout><SavingsGoals /></Layout>} />
           <Route path="/daily-tasks" element={<Layout><DailyTasks /></Layout>} />
