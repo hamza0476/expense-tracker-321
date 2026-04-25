@@ -1,5 +1,5 @@
-import { NavLink as RRNavLink, useLocation, useNavigate } from "react-router-dom";
-import { LayoutGrid, Receipt, Plus, BarChart3, User } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { LayoutGrid, Receipt, Plus, BarChart3, Repeat } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -7,7 +7,7 @@ const navItems = [
   { title: "Transactions", url: "/expenses", icon: Receipt },
   { title: "Add", url: "/add-expense", icon: Plus, isSpecial: true },
   { title: "Analytics", url: "/budgets", icon: BarChart3 },
-  { title: "Profile", url: "/profile", icon: User },
+  { title: "Recurring", url: "/recurring-expenses", icon: Repeat },
 ];
 
 export const BottomNav = () => {
