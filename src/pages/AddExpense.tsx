@@ -261,21 +261,23 @@ const AddExpense = () => {
         </div>
 
         {/* Date */}
-        <div className="space-y-2">
-          <p className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+        <div className="space-y-1.5">
+          <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
             Date
           </p>
           <Popover>
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className="w-full h-12 rounded-2xl border border-border bg-card px-4 flex items-center justify-between text-sm font-medium"
+                className="w-full h-11 rounded-2xl border border-border bg-card px-3 flex items-center justify-between text-sm font-medium"
               >
-                <span className="flex items-center gap-2">
-                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                <span className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center">
+                    <CalendarIcon className="h-3.5 w-3.5 text-primary" />
+                  </div>
                   {format(formData.date, "MM/dd/yyyy")}
                 </span>
-                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
@@ -290,15 +292,15 @@ const AddExpense = () => {
         </div>
 
         {/* Notes */}
-        <div className="space-y-2">
-          <p className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+        <div className="space-y-1.5">
+          <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
             Notes
           </p>
           <Textarea
             placeholder="What was this for?"
             value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            className="min-h-[88px] rounded-2xl border-border bg-card resize-none"
+            className="min-h-[72px] rounded-2xl border-border bg-card resize-none text-sm"
           />
         </div>
 
@@ -307,15 +309,15 @@ const AddExpense = () => {
           placeholder="Vendor / store (optional)"
           value={formData.vendor}
           onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
-          className="h-12 rounded-2xl border-border bg-card"
+          className="h-11 rounded-2xl border-border bg-card text-sm"
         />
 
         {/* Submit */}
-        <div className="space-y-2 pt-2">
+        <div className="space-y-2 pt-1">
           <Button
             type="submit"
             disabled={loading}
-            className="w-full h-14 text-base font-bold rounded-2xl shadow-lg shadow-primary/30"
+            className="w-full h-12 text-sm font-bold rounded-2xl shadow-lg shadow-primary/30"
           >
             {loading ? "Saving..." : "Save Transaction"}
           </Button>
@@ -323,7 +325,7 @@ const AddExpense = () => {
             type="button"
             variant="ghost"
             onClick={() => navigate(-1)}
-            className="w-full h-11 text-muted-foreground"
+            className="w-full h-9 text-muted-foreground text-sm"
           >
             Cancel
           </Button>
