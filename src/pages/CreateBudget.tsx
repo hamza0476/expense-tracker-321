@@ -105,14 +105,16 @@ const CreateBudget = () => {
         <div className="w-9" />
       </div>
 
-      <div className="p-4 space-y-5">
+      <div className="p-4 space-y-4">
         {/* Amount */}
-        <div className="space-y-2">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="space-y-1.5">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             Budget Amount
           </p>
-          <div className="h-16 rounded-2xl border border-border bg-card px-4 flex items-center gap-3">
-            <span className="text-2xl font-bold text-muted-foreground">{symbol}</span>
+          <div className="h-14 rounded-2xl border border-border bg-card px-3 flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
+              <span className="text-base font-bold text-primary">{symbol}</span>
+            </div>
             <Input
               type="number"
               step="0.01"
@@ -120,54 +122,26 @@ const CreateBudget = () => {
               placeholder="0.00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="border-0 shadow-none bg-transparent text-3xl font-bold h-auto p-0 focus-visible:ring-0"
+              className="border-0 shadow-none bg-transparent text-2xl font-bold h-auto p-0 focus-visible:ring-0"
             />
           </div>
         </div>
 
         {/* Category */}
-        <div className="space-y-2">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="space-y-1.5">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             Select Category
           </p>
-          <div className="grid grid-cols-4 gap-2">
-            {CATEGORIES.map((c) => {
-              const active = category === c.value;
-              return (
-                <button
-                  key={c.value}
-                  type="button"
-                  onClick={() => setCategory(c.value)}
-                  className={cn(
-                    "flex flex-col items-center gap-1.5 p-2.5 rounded-2xl border-2 transition-all",
-                    active
-                      ? "border-primary bg-card"
-                      : "border-transparent bg-card"
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center",
-                      active ? "bg-primary/15" : "bg-muted"
-                    )}
-                  >
-                    <c.Icon
-                      className={cn("w-4 h-4", active ? "text-primary" : "text-foreground")}
-                      strokeWidth={2.2}
-                    />
-                  </div>
-                  <span className={cn("text-xs font-semibold", active && "text-primary")}>
-                    {c.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+          <CategoryPicker
+            value={category}
+            onChange={setCategory}
+            options={EXPENSE_CATEGORY_OPTIONS}
+          />
         </div>
 
         {/* Period */}
-        <div className="space-y-2">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="space-y-1.5">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             Budget Period
           </p>
           <div className="bg-muted/60 rounded-full p-1 grid grid-cols-3">
@@ -177,7 +151,7 @@ const CreateBudget = () => {
                 type="button"
                 onClick={() => setPeriod(p.value)}
                 className={cn(
-                  "h-10 rounded-full font-semibold text-sm transition-all",
+                  "h-9 rounded-full font-semibold text-xs transition-all",
                   period === p.value
                     ? "bg-card text-primary shadow"
                     : "text-muted-foreground"
