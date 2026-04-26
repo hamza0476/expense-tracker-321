@@ -163,14 +163,14 @@ const AddExpense = () => {
         </Button>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-4 space-y-5">
+      <form onSubmit={handleSubmit} className="p-4 space-y-4">
         {/* Amount */}
-        <div className="text-center pt-2">
-          <p className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase mb-3">
+        <div className="text-center pt-1">
+          <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase mb-2">
             Enter Amount
           </p>
-          <div className="flex items-center justify-center gap-3">
-            <span className="text-3xl font-bold text-primary">{symbol}</span>
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-2xl font-bold text-primary">{symbol}</span>
             <Input
               type="number"
               step="0.01"
@@ -178,22 +178,22 @@ const AddExpense = () => {
               placeholder="0.00"
               value={formData.amount}
               onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-              className="h-14 text-4xl font-bold text-center border-0 shadow-none bg-transparent w-44 px-0 placeholder:text-muted-foreground/40 focus-visible:ring-0"
+              className="h-12 text-3xl font-bold text-center border-0 shadow-none bg-transparent w-40 px-0 placeholder:text-muted-foreground/40 focus-visible:ring-0"
             />
             <div className="flex flex-col gap-1">
               <button
                 type="button"
                 onClick={() => adjustAmount(1)}
-                className="w-6 h-6 rounded-md hover:bg-muted flex items-center justify-center"
+                className="w-6 h-6 rounded-md bg-muted hover:bg-primary/15 flex items-center justify-center"
               >
-                <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                <ChevronUp className="w-3.5 h-3.5 text-primary" />
               </button>
               <button
                 type="button"
                 onClick={() => adjustAmount(-1)}
-                className="w-6 h-6 rounded-md hover:bg-muted flex items-center justify-center"
+                className="w-6 h-6 rounded-md bg-muted hover:bg-primary/15 flex items-center justify-center"
               >
-                <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                <ChevronDown className="w-3.5 h-3.5 text-primary" />
               </button>
             </div>
           </div>
