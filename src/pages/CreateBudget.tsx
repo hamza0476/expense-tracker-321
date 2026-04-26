@@ -164,42 +164,42 @@ const CreateBudget = () => {
         </div>
 
         {/* Alerts card */}
-        <Card className="rounded-2xl p-4 border-border/40 shadow-sm space-y-3">
+        <Card className="rounded-2xl p-3.5 border-border/40 shadow-sm space-y-2">
           <div className="flex items-start justify-between">
             <div>
-              <p className="font-bold text-base">Spending Alerts</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="font-bold text-sm">Spending Alerts</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
                 Get notified when you hit milestones
               </p>
             </div>
             <Switch checked={alertsOn} onCheckedChange={setAlertsOn} />
           </div>
 
-          <div className={cn("space-y-2 pt-2", !alertsOn && "opacity-40 pointer-events-none")}>
+          <div className={cn("space-y-1.5 pt-1", !alertsOn && "opacity-40 pointer-events-none")}>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Bell className="w-4 h-4 text-primary" />
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Bell className="w-3.5 h-3.5 text-primary" />
                 </div>
-                <span className="text-sm font-medium">At 50% reached</span>
+                <span className="text-xs font-medium">At 50% reached</span>
               </div>
               <Checkbox checked={alert50} onCheckedChange={(v) => setAlert50(!!v)} />
             </div>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-warning/10 flex items-center justify-center">
-                  <AlertTriangle className="w-4 h-4 text-warning" />
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
+                  <AlertTriangle className="w-3.5 h-3.5 text-warning" />
                 </div>
-                <span className="text-sm font-medium">At 80% reached</span>
+                <span className="text-xs font-medium">At 80% reached</span>
               </div>
               <Checkbox checked={alert80} onCheckedChange={(v) => setAlert80(!!v)} />
             </div>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-destructive/10 flex items-center justify-center">
-                  <AlertCircle className="w-4 h-4 text-destructive" />
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center">
+                  <AlertCircle className="w-3.5 h-3.5 text-destructive" />
                 </div>
-                <span className="text-sm font-medium">At 100% (Limit)</span>
+                <span className="text-xs font-medium">At 100% (Limit)</span>
               </div>
               <Checkbox checked={alert100} onCheckedChange={(v) => setAlert100(!!v)} />
             </div>
@@ -207,12 +207,12 @@ const CreateBudget = () => {
         </Card>
 
         {/* Info */}
-        <Card className="rounded-2xl p-4 bg-primary/5 border-0">
-          <div className="flex gap-3">
-            <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center shrink-0">
-              <Info className="w-3.5 h-3.5 text-primary-foreground" />
+        <Card className="rounded-2xl p-3 bg-primary/5 border-0">
+          <div className="flex gap-2.5">
+            <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0">
+              <Info className="w-3 h-3 text-primary-foreground" />
             </div>
-            <p className="text-xs text-foreground leading-relaxed">
+            <p className="text-[11px] text-foreground leading-relaxed">
               Setting a realistic budget is the first step toward financial freedom. We'll track
               your <span className="font-bold text-primary">{category}</span> spending automatically.
             </p>
@@ -221,21 +221,21 @@ const CreateBudget = () => {
       </div>
 
       {/* Sticky CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur border-t border-border/40 md:hidden z-20">
+      <div className="fixed bottom-20 left-0 right-0 p-3 bg-background/95 backdrop-blur border-t border-border/40 md:hidden z-20 safe-bottom">
         <Button
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full h-14 text-base font-bold rounded-2xl shadow-lg shadow-primary/30 gap-2"
+          className="w-full h-12 text-sm font-bold rounded-2xl shadow-lg shadow-primary/30 gap-2"
         >
           {loading ? "Creating..." : "Create Budget"}
           {!loading && <ArrowRight className="w-4 h-4" />}
         </Button>
       </div>
-      <div className="hidden md:block">
+      <div className="hidden md:block px-4">
         <Button
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full h-14 text-base font-bold rounded-2xl shadow-lg shadow-primary/30 gap-2"
+          className="w-full h-12 text-sm font-bold rounded-2xl shadow-lg shadow-primary/30 gap-2"
         >
           {loading ? "Creating..." : "Create Budget"}
           {!loading && <ArrowRight className="w-4 h-4" />}
