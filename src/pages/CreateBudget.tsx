@@ -10,18 +10,7 @@ import { toast } from "sonner";
 import { X, ArrowRight, Bell, AlertTriangle, AlertCircle, Info } from "lucide-react";
 import { getCurrencySymbol } from "@/lib/currencies";
 import { cn } from "@/lib/utils";
-import { Home, Utensils, Film, MoreHorizontal, ShoppingBag, Car, Heart, Zap } from "lucide-react";
-
-const CATEGORIES = [
-  { value: "Rent", label: "Housing", Icon: Home },
-  { value: "Dining", label: "Food", Icon: Utensils },
-  { value: "Entertainment", label: "Fun", Icon: Film },
-  { value: "Shopping", label: "Shopping", Icon: ShoppingBag },
-  { value: "Transport", label: "Transport", Icon: Car },
-  { value: "Health", label: "Health", Icon: Heart },
-  { value: "Utilities", label: "Bills", Icon: Zap },
-  { value: "Other", label: "Other", Icon: MoreHorizontal },
-];
+import { CategoryPicker, EXPENSE_CATEGORY_OPTIONS } from "@/components/CategoryPicker";
 
 const PERIODS = [
   { value: "weekly", label: "Weekly" },
