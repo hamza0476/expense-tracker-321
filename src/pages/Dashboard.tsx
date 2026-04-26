@@ -180,38 +180,8 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Spending Trends */}
-      <Card className="rounded-2xl p-4 border-border/40 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-base">Spending Trends</h3>
-        </div>
-        <div className="flex items-end justify-between h-32 gap-2">
-          {weeklyData.map((d, i) => {
-            const height = (d.total / maxWeekly) * 100;
-            return (
-              <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                <div className="w-full flex-1 flex items-end">
-                  <div
-                    className={cn(
-                      "w-full rounded-t-2xl transition-all",
-                      d.isToday ? "bg-primary" : "bg-muted"
-                    )}
-                    style={{ height: `${Math.max(height, 8)}%` }}
-                  />
-                </div>
-                <span
-                  className={cn(
-                    "text-[10px] font-semibold uppercase",
-                    d.isToday ? "text-primary" : "text-muted-foreground"
-                  )}
-                >
-                  {d.label}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </Card>
+      {/* Spending Trends with toggle */}
+      <SpendingTrendsChart expenses={expenses} currencySymbol={currencySymbol} />
 
       {/* Recent Transactions */}
       <div className="flex items-center justify-between px-1">
