@@ -14,25 +14,11 @@ import { pushNotificationService } from "@/services/pushNotifications";
 import { ReceiptScanner } from "@/components/ReceiptScanner";
 import { getCurrencySymbol } from "@/lib/currencies";
 import { cn } from "@/lib/utils";
-import { Utensils, ShoppingBag, Car, Home, Film, Heart, Zap, MoreHorizontal, Banknote, Tag as TagIcon, Briefcase } from "lucide-react";
-
-const EXPENSE_QUICK = [
-  { value: "Dining", label: "Food", Icon: Utensils },
-  { value: "Shopping", label: "Shop", Icon: ShoppingBag },
-  { value: "Transport", label: "Travel", Icon: Car },
-  { value: "Rent", label: "Rent", Icon: Home },
-  { value: "Entertainment", label: "Fun", Icon: Film },
-  { value: "Health", label: "Health", Icon: Heart },
-  { value: "Utilities", label: "Bills", Icon: Zap },
-  { value: "Other", label: "Other", Icon: MoreHorizontal },
-];
-
-const INCOME_QUICK = [
-  { value: "Salary", label: "Salary", Icon: Banknote },
-  { value: "Selling", label: "Selling", Icon: TagIcon },
-  { value: "Business", label: "Business", Icon: Briefcase },
-  { value: "Other", label: "Other", Icon: MoreHorizontal },
-];
+import {
+  CategoryPicker,
+  EXPENSE_CATEGORY_OPTIONS,
+  INCOME_CATEGORY_OPTIONS,
+} from "@/components/CategoryPicker";
 
 const AddExpense = () => {
   const navigate = useNavigate();
