@@ -6,9 +6,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ArrowDownLeft, ArrowUpRight, TrendingUp } from "lucide-react";
-import { format, startOfMonth, endOfMonth, subMonths, startOfWeek, endOfWeek, eachDayOfInterval } from "date-fns";
+import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { getCurrencySymbol } from "@/lib/currencies";
 import { EXPENSE_CATEGORIES, getCategoryColor } from "@/lib/categories";
+import { SpendingTrendsChart } from "@/components/SpendingTrendsChart";
 
 interface Expense {
   id: string;
@@ -93,22 +94,7 @@ const Dashboard = () => {
       ? ((monthlyExpense - lastMonthExpense) / lastMonthExpense) * 100
       : 0;
 
-  // Weekly bar chart data
-  const weekStart = startOfWeek(now, { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
-  const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
-  const weeklyData = weekDays.map((day) => {
-    const dayKey = format(day, "yyyy-MM-dd");
-    const total = expenses
-      .filter((e) => e.date === dayKey && Number(e.amount) > 0)
-      .reduce((s, e) => s + Number(e.amount), 0);
-    return {
-      label: format(day, "EEE").toUpperCase(),
-      total,
-      isToday: format(day, "yyyy-MM-dd") === format(now, "yyyy-MM-dd"),
-    };
-  });
-  const maxWeekly = Math.max(...weeklyData.map((d) => d.total), 1);
+  // Spending trends are rendered by <SpendingTrendsChart />
 
   const formatTransactionDate = (dateStr: string, createdAt: string) => {
     const d = new Date(dateStr);
