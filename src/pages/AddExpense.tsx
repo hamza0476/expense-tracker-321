@@ -205,12 +205,12 @@ const AddExpense = () => {
             type="button"
             onClick={() => {
               setType("expense");
-              if (!EXPENSE_QUICK.some((c) => c.value === formData.category)) {
+              if (!EXPENSE_CATEGORY_OPTIONS.some((c) => c.value === formData.category)) {
                 setFormData((f) => ({ ...f, category: "Dining" }));
               }
             }}
             className={cn(
-              "h-10 rounded-full font-bold text-xs uppercase tracking-wider transition-all",
+              "h-9 rounded-full font-bold text-[11px] uppercase tracking-wider transition-all",
               type === "expense"
                 ? "bg-primary text-primary-foreground shadow"
                 : "text-muted-foreground"
@@ -222,12 +222,12 @@ const AddExpense = () => {
             type="button"
             onClick={() => {
               setType("income");
-              if (!INCOME_QUICK.some((c) => c.value === formData.category)) {
+              if (!INCOME_CATEGORY_OPTIONS.some((c) => c.value === formData.category)) {
                 setFormData((f) => ({ ...f, category: "Salary" }));
               }
             }}
             className={cn(
-              "h-10 rounded-full font-bold text-xs uppercase tracking-wider transition-all",
+              "h-9 rounded-full font-bold text-[11px] uppercase tracking-wider transition-all",
               type === "income"
                 ? "bg-primary text-primary-foreground shadow"
                 : "text-muted-foreground"
@@ -237,47 +237,27 @@ const AddExpense = () => {
           </button>
         </div>
 
-        {/* Category grid */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-base">Category</h3>
+        {/* Category dropdown */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-sm">Category</h3>
             <Button
               type="button"
               variant="ghost"
               size="sm"
               onClick={handleAICategorize}
               disabled={aiLoading}
-              className="h-7 text-xs gap-1 text-primary hover:bg-primary/10 px-2"
+              className="h-7 text-[11px] gap-1 text-primary hover:bg-primary/10 px-2"
             >
               <Sparkles className="h-3 w-3" />
               {aiLoading ? "..." : "AI Suggest"}
             </Button>
           </div>
-          <div className="grid grid-cols-4 gap-3">
-            {(type === "income" ? INCOME_QUICK : EXPENSE_QUICK).map((c) => {
-              const active = formData.category === c.value;
-              return (
-                <button
-                  key={c.value}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, category: c.value })}
-                  className="flex flex-col items-center gap-1.5"
-                >
-                  <div
-                    className={cn(
-                      "w-14 h-14 rounded-2xl flex items-center justify-center transition-all",
-                      active
-                        ? "bg-success text-success-foreground shadow-md shadow-success/30"
-                        : "bg-muted text-foreground"
-                    )}
-                  >
-                    <c.Icon className="w-5 h-5" strokeWidth={2.2} />
-                  </div>
-                  <span className="text-xs font-medium">{c.label}</span>
-                </button>
-              );
-            })}
-          </div>
+          <CategoryPicker
+            value={formData.category}
+            onChange={(v) => setFormData({ ...formData, category: v })}
+            options={type === "income" ? INCOME_CATEGORY_OPTIONS : EXPENSE_CATEGORY_OPTIONS}
+          />
         </div>
 
         {/* Date */}
