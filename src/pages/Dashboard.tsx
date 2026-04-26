@@ -6,9 +6,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ArrowDownLeft, ArrowUpRight, TrendingUp } from "lucide-react";
-import { format, startOfMonth, endOfMonth, subMonths, startOfWeek, endOfWeek, eachDayOfInterval } from "date-fns";
+import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { getCurrencySymbol } from "@/lib/currencies";
 import { EXPENSE_CATEGORIES, getCategoryColor } from "@/lib/categories";
+import { SpendingTrendsChart } from "@/components/SpendingTrendsChart";
 
 interface Expense {
   id: string;
@@ -93,22 +94,7 @@ const Dashboard = () => {
       ? ((monthlyExpense - lastMonthExpense) / lastMonthExpense) * 100
       : 0;
 
-  // Weekly bar chart data
-  const weekStart = startOfWeek(now, { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
-  const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
-  const weeklyData = weekDays.map((day) => {
-    const dayKey = format(day, "yyyy-MM-dd");
-    const total = expenses
-      .filter((e) => e.date === dayKey && Number(e.amount) > 0)
-      .reduce((s, e) => s + Number(e.amount), 0);
-    return {
-      label: format(day, "EEE").toUpperCase(),
-      total,
-      isToday: format(day, "yyyy-MM-dd") === format(now, "yyyy-MM-dd"),
-    };
-  });
-  const maxWeekly = Math.max(...weeklyData.map((d) => d.total), 1);
+  // Spending trends are rendered by <SpendingTrendsChart />
 
   const formatTransactionDate = (dateStr: string, createdAt: string) => {
     const d = new Date(dateStr);
@@ -194,38 +180,8 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Spending Trends */}
-      <Card className="rounded-2xl p-4 border-border/40 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-base">Spending Trends</h3>
-        </div>
-        <div className="flex items-end justify-between h-32 gap-2">
-          {weeklyData.map((d, i) => {
-            const height = (d.total / maxWeekly) * 100;
-            return (
-              <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                <div className="w-full flex-1 flex items-end">
-                  <div
-                    className={cn(
-                      "w-full rounded-t-2xl transition-all",
-                      d.isToday ? "bg-primary" : "bg-muted"
-                    )}
-                    style={{ height: `${Math.max(height, 8)}%` }}
-                  />
-                </div>
-                <span
-                  className={cn(
-                    "text-[10px] font-semibold uppercase",
-                    d.isToday ? "text-primary" : "text-muted-foreground"
-                  )}
-                >
-                  {d.label}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </Card>
+      {/* Spending Trends with toggle */}
+      <SpendingTrendsChart expenses={expenses} currencySymbol={currencySymbol} />
 
       {/* Recent Transactions */}
       <div className="flex items-center justify-between px-1">

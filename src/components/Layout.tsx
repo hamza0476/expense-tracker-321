@@ -2,12 +2,11 @@ import { ReactNode, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LogOut, Menu } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
 import { FloatingAIChat } from "@/components/FloatingAIChat";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { AppSidebar } from "@/components/AppSidebar";
+import { LogoMenuSheet } from "@/components/LogoMenuSheet";
 import { pushNotificationService } from "@/services/pushNotifications";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -126,18 +125,26 @@ const Layout = ({ children }: LayoutProps) => {
     <div className="min-h-screen flex flex-col bg-background">
       {/* Top Header - Premium Glass Effect */}
       <header className="h-14 border-b border-border/30 bg-card/80 backdrop-blur-xl sticky top-0 z-40 flex items-center justify-between px-4 shadow-[0_1px_3px_rgba(0,0,0,0.08)] safe-top">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-md shadow-primary/20">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary-foreground">
-              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
-              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
-              <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
-            </svg>
-          </div>
-          <h1 className="text-base font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent tracking-tight">
-            ExpenseWiz
-          </h1>
-        </div>
+        <LogoMenuSheet
+          trigger={
+            <button
+              type="button"
+              className="flex items-center gap-2.5 rounded-xl px-1.5 py-1 -ml-1.5 hover:bg-primary/10 active:scale-95 transition-all"
+              aria-label="Open menu"
+            >
+              <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-md shadow-primary/20">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary-foreground">
+                  <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+                  <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+                  <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+                </svg>
+              </div>
+              <h1 className="text-base font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent tracking-tight">
+                ExpenseWiz
+              </h1>
+            </button>
+          }
+        />
 
         <div className="flex items-center gap-1.5">
           <ThemeToggle />

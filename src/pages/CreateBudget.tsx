@@ -10,18 +10,7 @@ import { toast } from "sonner";
 import { X, ArrowRight, Bell, AlertTriangle, AlertCircle, Info } from "lucide-react";
 import { getCurrencySymbol } from "@/lib/currencies";
 import { cn } from "@/lib/utils";
-import { Home, Utensils, Film, MoreHorizontal, ShoppingBag, Car, Heart, Zap } from "lucide-react";
-
-const CATEGORIES = [
-  { value: "Rent", label: "Housing", Icon: Home },
-  { value: "Dining", label: "Food", Icon: Utensils },
-  { value: "Entertainment", label: "Fun", Icon: Film },
-  { value: "Shopping", label: "Shopping", Icon: ShoppingBag },
-  { value: "Transport", label: "Transport", Icon: Car },
-  { value: "Health", label: "Health", Icon: Heart },
-  { value: "Utilities", label: "Bills", Icon: Zap },
-  { value: "Other", label: "Other", Icon: MoreHorizontal },
-];
+import { CategoryPicker, EXPENSE_CATEGORY_OPTIONS } from "@/components/CategoryPicker";
 
 const PERIODS = [
   { value: "weekly", label: "Weekly" },
@@ -116,14 +105,16 @@ const CreateBudget = () => {
         <div className="w-9" />
       </div>
 
-      <div className="p-4 space-y-5">
+      <div className="p-4 space-y-4">
         {/* Amount */}
-        <div className="space-y-2">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="space-y-1.5">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             Budget Amount
           </p>
-          <div className="h-16 rounded-2xl border border-border bg-card px-4 flex items-center gap-3">
-            <span className="text-2xl font-bold text-muted-foreground">{symbol}</span>
+          <div className="h-14 rounded-2xl border border-border bg-card px-3 flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
+              <span className="text-base font-bold text-primary">{symbol}</span>
+            </div>
             <Input
               type="number"
               step="0.01"
@@ -131,54 +122,26 @@ const CreateBudget = () => {
               placeholder="0.00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="border-0 shadow-none bg-transparent text-3xl font-bold h-auto p-0 focus-visible:ring-0"
+              className="border-0 shadow-none bg-transparent text-2xl font-bold h-auto p-0 focus-visible:ring-0"
             />
           </div>
         </div>
 
         {/* Category */}
-        <div className="space-y-2">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="space-y-1.5">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             Select Category
           </p>
-          <div className="grid grid-cols-4 gap-2">
-            {CATEGORIES.map((c) => {
-              const active = category === c.value;
-              return (
-                <button
-                  key={c.value}
-                  type="button"
-                  onClick={() => setCategory(c.value)}
-                  className={cn(
-                    "flex flex-col items-center gap-1.5 p-2.5 rounded-2xl border-2 transition-all",
-                    active
-                      ? "border-primary bg-card"
-                      : "border-transparent bg-card"
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center",
-                      active ? "bg-primary/15" : "bg-muted"
-                    )}
-                  >
-                    <c.Icon
-                      className={cn("w-4 h-4", active ? "text-primary" : "text-foreground")}
-                      strokeWidth={2.2}
-                    />
-                  </div>
-                  <span className={cn("text-xs font-semibold", active && "text-primary")}>
-                    {c.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+          <CategoryPicker
+            value={category}
+            onChange={setCategory}
+            options={EXPENSE_CATEGORY_OPTIONS}
+          />
         </div>
 
         {/* Period */}
-        <div className="space-y-2">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="space-y-1.5">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             Budget Period
           </p>
           <div className="bg-muted/60 rounded-full p-1 grid grid-cols-3">
@@ -188,7 +151,7 @@ const CreateBudget = () => {
                 type="button"
                 onClick={() => setPeriod(p.value)}
                 className={cn(
-                  "h-10 rounded-full font-semibold text-sm transition-all",
+                  "h-9 rounded-full font-semibold text-xs transition-all",
                   period === p.value
                     ? "bg-card text-primary shadow"
                     : "text-muted-foreground"
@@ -201,42 +164,42 @@ const CreateBudget = () => {
         </div>
 
         {/* Alerts card */}
-        <Card className="rounded-2xl p-4 border-border/40 shadow-sm space-y-3">
+        <Card className="rounded-2xl p-3.5 border-border/40 shadow-sm space-y-2">
           <div className="flex items-start justify-between">
             <div>
-              <p className="font-bold text-base">Spending Alerts</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="font-bold text-sm">Spending Alerts</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
                 Get notified when you hit milestones
               </p>
             </div>
             <Switch checked={alertsOn} onCheckedChange={setAlertsOn} />
           </div>
 
-          <div className={cn("space-y-2 pt-2", !alertsOn && "opacity-40 pointer-events-none")}>
+          <div className={cn("space-y-1.5 pt-1", !alertsOn && "opacity-40 pointer-events-none")}>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Bell className="w-4 h-4 text-primary" />
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Bell className="w-3.5 h-3.5 text-primary" />
                 </div>
-                <span className="text-sm font-medium">At 50% reached</span>
+                <span className="text-xs font-medium">At 50% reached</span>
               </div>
               <Checkbox checked={alert50} onCheckedChange={(v) => setAlert50(!!v)} />
             </div>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-warning/10 flex items-center justify-center">
-                  <AlertTriangle className="w-4 h-4 text-warning" />
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
+                  <AlertTriangle className="w-3.5 h-3.5 text-warning" />
                 </div>
-                <span className="text-sm font-medium">At 80% reached</span>
+                <span className="text-xs font-medium">At 80% reached</span>
               </div>
               <Checkbox checked={alert80} onCheckedChange={(v) => setAlert80(!!v)} />
             </div>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-destructive/10 flex items-center justify-center">
-                  <AlertCircle className="w-4 h-4 text-destructive" />
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center">
+                  <AlertCircle className="w-3.5 h-3.5 text-destructive" />
                 </div>
-                <span className="text-sm font-medium">At 100% (Limit)</span>
+                <span className="text-xs font-medium">At 100% (Limit)</span>
               </div>
               <Checkbox checked={alert100} onCheckedChange={(v) => setAlert100(!!v)} />
             </div>
@@ -244,12 +207,12 @@ const CreateBudget = () => {
         </Card>
 
         {/* Info */}
-        <Card className="rounded-2xl p-4 bg-primary/5 border-0">
-          <div className="flex gap-3">
-            <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center shrink-0">
-              <Info className="w-3.5 h-3.5 text-primary-foreground" />
+        <Card className="rounded-2xl p-3 bg-primary/5 border-0">
+          <div className="flex gap-2.5">
+            <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0">
+              <Info className="w-3 h-3 text-primary-foreground" />
             </div>
-            <p className="text-xs text-foreground leading-relaxed">
+            <p className="text-[11px] text-foreground leading-relaxed">
               Setting a realistic budget is the first step toward financial freedom. We'll track
               your <span className="font-bold text-primary">{category}</span> spending automatically.
             </p>
@@ -258,21 +221,21 @@ const CreateBudget = () => {
       </div>
 
       {/* Sticky CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur border-t border-border/40 md:hidden z-20">
+      <div className="fixed bottom-20 left-0 right-0 p-3 bg-background/95 backdrop-blur border-t border-border/40 md:hidden z-20 safe-bottom">
         <Button
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full h-14 text-base font-bold rounded-2xl shadow-lg shadow-primary/30 gap-2"
+          className="w-full h-12 text-sm font-bold rounded-2xl shadow-lg shadow-primary/30 gap-2"
         >
           {loading ? "Creating..." : "Create Budget"}
           {!loading && <ArrowRight className="w-4 h-4" />}
         </Button>
       </div>
-      <div className="hidden md:block">
+      <div className="hidden md:block px-4">
         <Button
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full h-14 text-base font-bold rounded-2xl shadow-lg shadow-primary/30 gap-2"
+          className="w-full h-12 text-sm font-bold rounded-2xl shadow-lg shadow-primary/30 gap-2"
         >
           {loading ? "Creating..." : "Create Budget"}
           {!loading && <ArrowRight className="w-4 h-4" />}
