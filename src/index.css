@@ -188,11 +188,38 @@
   h2 { font-size: 1.5rem; line-height: 1.35; }
 }
 
-/* Touch-friendly tap targets (48dp minimum) */
+/* Touch-friendly tap targets — desktop only forces 48dp; mobile uses component-level sizing */
+@media (min-width: 768px) {
+  button, a, [role="button"] {
+    touch-action: manipulation;
+  }
+}
 button, a, [role="button"] {
-  min-height: 48px;
-  min-width: 48px;
   touch-action: manipulation;
+}
+
+/* Thin, modern scrollbar */
+.thin-scrollbar::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.thin-scrollbar::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.25);
+  border-radius: 9999px;
+}
+.thin-scrollbar::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.45);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground) / 0.25) transparent;
 }
 
 /* Smooth scrolling for mobile */
