@@ -124,29 +124,29 @@ const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Top Header - Premium Glass Effect */}
-      <header className="h-14 border-b border-border/30 bg-card/80 backdrop-blur-xl sticky top-0 z-40 flex items-center justify-between px-4 shadow-[0_1px_3px_rgba(0,0,0,0.08)] safe-top">
+      <header className="h-12 md:h-14 border-b border-border/30 bg-card/80 backdrop-blur-xl sticky top-0 z-40 flex items-center justify-between px-3 md:px-4 shadow-[0_1px_3px_rgba(0,0,0,0.08)] safe-top">
         <LogoMenuSheet
           trigger={
             <button
               type="button"
-              className="flex items-center gap-2.5 rounded-xl px-1.5 py-1 -ml-1.5 hover:bg-primary/10 active:scale-95 transition-all"
+              className="flex items-center gap-2 rounded-xl px-1 py-0.5 -ml-1 hover:bg-primary/10 active:scale-95 transition-all min-h-0 min-w-0"
               aria-label="Open menu"
             >
-              <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-md shadow-primary/20">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary-foreground">
+              <div className="w-7 h-7 md:w-8 md:h-8 bg-gradient-to-br from-primary to-accent rounded-lg md:rounded-xl flex items-center justify-center shadow-md shadow-primary/20 shrink-0">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary-foreground md:w-[18px] md:h-[18px]">
                   <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
                   <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
                   <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
                 </svg>
               </div>
-              <h1 className="text-base font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent tracking-tight">
+              <h1 className="text-sm md:text-base font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent tracking-tight whitespace-nowrap">
                 ExpenseWiz
               </h1>
             </button>
           }
         />
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-0.5 md:gap-1.5 shrink-0">
           <ThemeToggle />
           
           {/* Profile Avatar - Premium Ring */}
@@ -154,13 +154,13 @@ const Layout = ({ children }: LayoutProps) => {
             variant="ghost"
             size="sm"
             onClick={() => navigate("/profile")}
-            className="hover:bg-primary/10 hover:text-primary transition-all duration-200 gap-2 rounded-full p-1.5"
+            className="hover:bg-primary/10 hover:text-primary transition-all duration-200 gap-2 rounded-full p-1 md:p-1.5 min-h-0 min-w-0 h-auto w-auto"
           >
             <div className="relative">
               <div className="absolute -inset-0.5 bg-gradient-to-br from-primary to-accent rounded-full opacity-70" />
-              <Avatar className="h-7 w-7 relative border-2 border-background">
+              <Avatar className="h-6 w-6 md:h-7 md:w-7 relative border-2 border-background">
                 <AvatarImage src={profile.avatar_url} alt={profile.full_name} />
-                <AvatarFallback className="text-xs bg-gradient-to-br from-primary to-accent text-primary-foreground font-semibold">
+                <AvatarFallback className="text-[10px] md:text-xs bg-gradient-to-br from-primary to-accent text-primary-foreground font-semibold">
                   {profile.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
@@ -172,9 +172,9 @@ const Layout = ({ children }: LayoutProps) => {
             variant="ghost"
             size="sm"
             onClick={() => setShowLogoutDialog(true)}
-            className="hover:bg-destructive/10 hover:text-destructive transition-all duration-200 text-xs font-medium rounded-full p-2"
+            className="hover:bg-destructive/10 hover:text-destructive transition-all duration-200 text-xs font-medium rounded-full p-1.5 md:p-2 min-h-0 min-w-0 h-auto w-auto"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-3.5 h-3.5 md:w-4 md:h-4" />
           </Button>
         </div>
       </header>
