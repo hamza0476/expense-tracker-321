@@ -101,15 +101,27 @@ const AddExpense = () => {
       return;
     }
     setLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
+    if (!user) {
+      toast.error("Not authenticated");
+      setLoading(false);
+      return;
+    }
+    const amount = parseFloat(formData.amount);
+    const isIncome = type === "income";
 
-      const amount = parseFloat(formData.amount);
-      const { error } = await supabase.from("expenses").insert([
+    // Optimistic UX: show feedback and navigate immediately
+    toast.success(isIncome ? "Income added!" : "Expense added!");
+    navigate(isIncome ? "/" : "/expenses");
+
+    // Fire-and-forget the insert in the background
+    supabase
+      .from("expenses")
+      .insert([
         {
           user_id: user.id,
-          amount: type === "income" ? -Math.abs(amount) : Math.abs(amount),
+          amount: isIncome ? -Math.abs(amount) : Math.abs(amount),
           category: formData.category,
           description: formData.notes,
           date: format(formData.date, "yyyy-MM-dd"),
@@ -120,16 +132,14 @@ const AddExpense = () => {
           original_amount: amount,
           exchange_rate: 1.0,
         },
-      ]);
-      if (error) throw error;
-      toast.success(type === "income" ? "Income added!" : "Expense added!");
-      pushNotificationService.checkBudgetAlerts(formData.category);
-      navigate("/expenses");
-    } catch (e: any) {
-      toast.error(e.message || "Failed");
-    } finally {
-      setLoading(false);
-    }
+      ])
+      .then(({ error }) => {
+        if (error) {
+          toast.error("Failed to save — please try again");
+        } else if (!isIncome) {
+          pushNotificationService.checkBudgetAlerts(formData.category);
+        }
+      });
   };
 
   const handleReceiptScan = (data: any) => {

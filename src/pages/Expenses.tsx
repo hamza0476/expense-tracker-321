@@ -51,8 +51,8 @@ const Expenses = () => {
   const [currencySymbol, setCurrencySymbol] = useState("$");
 
   useEffect(() => {
-    fetchExpenses();
-    fetchCurrency();
+    // Run in parallel for faster load
+    Promise.all([fetchExpenses(), fetchCurrency()]);
   }, []);
 
   const filtered = useMemo(() => {
@@ -141,15 +141,17 @@ const Expenses = () => {
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    try {
-      const { error } = await supabase.from("expenses").delete().eq("id", deleteId);
-      if (error) throw error;
-      toast.success("Deleted");
-      fetchExpenses();
-    } catch {
+    const id = deleteId;
+    // Optimistic update — instant UI response
+    const prev = expenses;
+    setExpenses((curr) => curr.filter((e) => e.id !== id));
+    setDeleteId(null);
+    toast.success("Deleted");
+    const { error } = await supabase.from("expenses").delete().eq("id", id);
+    if (error) {
+      // Rollback on failure
+      setExpenses(prev);
       toast.error("Failed to delete");
-    } finally {
-      setDeleteId(null);
     }
   };
 

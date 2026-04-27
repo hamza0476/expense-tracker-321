@@ -34,28 +34,32 @@ const Dashboard = () => {
 
   const fetchData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) return;
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("default_currency, monthly_income")
-        .eq("user_id", user.id)
-        .single();
+      // Run profile + expenses queries in parallel
+      const [profileRes, expensesRes] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("default_currency, monthly_income")
+          .eq("user_id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("expenses")
+          .select("id,amount,category,date,vendor,description,created_at")
+          .eq("user_id", user.id)
+          .order("date", { ascending: false })
+          .order("created_at", { ascending: false })
+          .limit(500),
+      ]);
 
+      const profile = profileRes.data;
       if (profile?.default_currency) {
         setCurrencySymbol(getCurrencySymbol(profile.default_currency));
       }
       if (profile?.monthly_income) setIncome(Number(profile.monthly_income));
-
-      const { data: expensesData } = await supabase
-        .from("expenses")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("date", { ascending: false })
-        .order("created_at", { ascending: false });
-
-      if (expensesData) setExpenses(expensesData);
+      if (expensesRes.data) setExpenses(expensesRes.data);
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
