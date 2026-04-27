@@ -163,14 +163,14 @@ const AddExpense = () => {
         </Button>
       </div>
 
-      <form onSubmit={handleSubmit} className="p-4 space-y-4">
+      <form onSubmit={handleSubmit} className="p-3 md:p-4 space-y-2.5 md:space-y-4">
         {/* Amount */}
-        <div className="text-center pt-1">
-          <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase mb-2">
+        <div className="text-center pt-0.5 md:pt-1">
+          <p className="text-[9px] md:text-[10px] font-bold tracking-wider text-muted-foreground uppercase mb-1 md:mb-2">
             Enter Amount
           </p>
           <div className="flex items-center justify-center gap-2">
-            <span className="text-2xl font-bold text-primary">{symbol}</span>
+            <span className="text-xl md:text-2xl font-bold text-primary">{symbol}</span>
             <Input
               type="number"
               step="0.01"
@@ -178,7 +178,7 @@ const AddExpense = () => {
               placeholder="0.00"
               value={formData.amount}
               onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-              className="h-12 text-3xl font-bold text-center border-0 shadow-none bg-transparent w-40 px-0 placeholder:text-muted-foreground/40 focus-visible:ring-0"
+              className="h-10 md:h-12 text-2xl md:text-3xl font-bold text-center border-0 shadow-none bg-transparent w-36 md:w-40 px-0 placeholder:text-muted-foreground/40 focus-visible:ring-0"
             />
             <div className="flex flex-col gap-1">
               <button
@@ -210,7 +210,7 @@ const AddExpense = () => {
               }
             }}
             className={cn(
-              "h-9 rounded-full font-bold text-[11px] uppercase tracking-wider transition-all",
+              "h-8 md:h-9 rounded-full font-bold text-[11px] uppercase tracking-wider transition-all",
               type === "expense"
                 ? "bg-primary text-primary-foreground shadow"
                 : "text-muted-foreground"
@@ -227,7 +227,7 @@ const AddExpense = () => {
               }
             }}
             className={cn(
-              "h-9 rounded-full font-bold text-[11px] uppercase tracking-wider transition-all",
+              "h-8 md:h-9 rounded-full font-bold text-[11px] uppercase tracking-wider transition-all",
               type === "income"
                 ? "bg-primary text-primary-foreground shadow"
                 : "text-muted-foreground"
@@ -238,9 +238,9 @@ const AddExpense = () => {
         </div>
 
         {/* Category dropdown */}
-        <div className="space-y-2">
+        <div className="space-y-1.5 md:space-y-2">
           <div className="flex items-center justify-between">
-            <h3 className="font-bold text-sm">Category</h3>
+            <h3 className="font-bold text-xs md:text-sm">Category</h3>
             <Button
               type="button"
               variant="ghost"
@@ -261,19 +261,19 @@ const AddExpense = () => {
         </div>
 
         {/* Date */}
-        <div className="space-y-1.5">
-          <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+        <div className="space-y-1 md:space-y-1.5">
+          <p className="text-[9px] md:text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
             Date
           </p>
           <Popover>
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className="w-full h-11 rounded-2xl border border-border bg-card px-3 flex items-center justify-between text-sm font-medium"
+                className="w-full h-10 md:h-11 rounded-xl md:rounded-2xl border border-border bg-card px-3 flex items-center justify-between text-xs md:text-sm font-medium"
               >
-                <span className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center">
-                    <CalendarIcon className="h-3.5 w-3.5 text-primary" />
+                <span className="flex items-center gap-2 md:gap-2.5">
+                  <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg bg-muted flex items-center justify-center">
+                    <CalendarIcon className="h-3 w-3 md:h-3.5 md:w-3.5 text-primary" />
                   </div>
                   {format(formData.date, "MM/dd/yyyy")}
                 </span>
@@ -292,15 +292,15 @@ const AddExpense = () => {
         </div>
 
         {/* Notes */}
-        <div className="space-y-1.5">
-          <p className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+        <div className="space-y-1 md:space-y-1.5">
+          <p className="text-[9px] md:text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
             Notes
           </p>
           <Textarea
             placeholder="What was this for?"
             value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            className="min-h-[72px] rounded-2xl border-border bg-card resize-none text-sm"
+            className="min-h-[52px] md:min-h-[72px] rounded-xl md:rounded-2xl border-border bg-card resize-none text-xs md:text-sm py-2"
           />
         </div>
 
@@ -309,15 +309,15 @@ const AddExpense = () => {
           placeholder="Vendor / store (optional)"
           value={formData.vendor}
           onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
-          className="h-11 rounded-2xl border-border bg-card text-sm"
+          className="h-10 md:h-11 rounded-xl md:rounded-2xl border-border bg-card text-xs md:text-sm"
         />
 
         {/* Submit */}
-        <div className="space-y-2 pt-1">
+        <div className="space-y-1.5 md:space-y-2 pt-0.5 md:pt-1">
           <Button
             type="submit"
             disabled={loading}
-            className="w-full h-12 text-sm font-bold rounded-2xl shadow-lg shadow-primary/30"
+            className="w-full h-11 md:h-12 text-xs md:text-sm font-bold rounded-xl md:rounded-2xl shadow-lg shadow-primary/30"
           >
             {loading ? "Saving..." : "Save Transaction"}
           </Button>
@@ -325,7 +325,7 @@ const AddExpense = () => {
             type="button"
             variant="ghost"
             onClick={() => navigate(-1)}
-            className="w-full h-9 text-muted-foreground text-sm"
+            className="w-full h-8 md:h-9 text-muted-foreground text-xs md:text-sm"
           >
             Cancel
           </Button>
