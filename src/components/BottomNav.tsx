@@ -16,7 +16,7 @@ export const BottomNav = () => {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-xl border-t border-border/40 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] z-50 md:hidden">
-      <div className="flex items-center justify-around px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      <div className="flex items-center justify-around px-4 pt-1.5 pb-[max(0.4rem,env(safe-area-inset-bottom))]">
         {navItems.map((item) => {
           const isActive =
             item.url === "/"
@@ -29,10 +29,10 @@ export const BottomNav = () => {
                 key={item.label}
                 onClick={() => navigate(item.url)}
                 aria-label={item.label}
-                className="flex items-center justify-center -mt-7"
+                className="flex items-center justify-center -mt-6"
               >
-                <div className="w-14 h-14 rounded-full bg-primary shadow-lg shadow-primary/40 ring-4 ring-card flex items-center justify-center active:scale-95 transition-transform">
-                  <item.icon className="w-6 h-6 text-primary-foreground" strokeWidth={2.5} />
+                <div className="w-12 h-12 rounded-full bg-primary shadow-lg shadow-primary/40 ring-4 ring-card flex items-center justify-center active:scale-95 transition-transform">
+                  <item.icon className="w-5 h-5 text-primary-foreground" strokeWidth={2.6} />
                 </div>
               </button>
             );
@@ -43,19 +43,14 @@ export const BottomNav = () => {
               key={item.label}
               onClick={() => navigate(item.url)}
               aria-label={item.label}
-              className={cn(
-                "flex items-center justify-center w-11 h-11 rounded-2xl transition-all active:scale-95",
-                isActive
-                  ? "bg-primary/10 ring-2 ring-primary/60"
-                  : "hover:bg-muted/60"
-              )}
+              className="flex items-center justify-center w-10 h-10 active:scale-90 transition-transform"
             >
               <item.icon
                 className={cn(
-                  "w-[22px] h-[22px] transition-colors",
-                  isActive ? "text-primary" : "text-muted-foreground"
+                  "w-[19px] h-[19px] transition-colors",
+                  isActive ? "text-primary" : "text-muted-foreground/70"
                 )}
-                strokeWidth={isActive ? 2.5 : 2}
+                strokeWidth={isActive ? 2.4 : 1.9}
               />
             </button>
           );

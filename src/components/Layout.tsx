@@ -43,7 +43,17 @@ const Layout = ({ children }: LayoutProps) => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    // Listen for instant profile updates (avatar/name) from Profile/Settings
+    const onProfileUpdated = (e: Event) => {
+      const detail = (e as CustomEvent).detail || {};
+      setProfile(prev => ({ ...prev, ...detail }));
+    };
+    window.addEventListener("profile:updated", onProfileUpdated as EventListener);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("profile:updated", onProfileUpdated as EventListener);
+    };
   }, [navigate]);
 
   const fetchProfile = async (userId: string) => {

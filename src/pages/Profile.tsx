@@ -117,26 +117,35 @@ const Profile = () => {
     try {
       setUploading(true);
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const ext = file.name.split(".").pop();
-      const filePath = `${user.id}-${Date.now()}.${ext}`;
-      if (profile.avatar_url) {
-        const oldPath = profile.avatar_url.split("/").pop();
-        if (oldPath) await supabase.storage.from("avatars").remove([oldPath]);
-      }
-      const { error: upErr } = await supabase.storage.from("avatars").upload(filePath, file, { upsert: true });
+      if (!user) { toast.error("Please sign in again"); return; }
+
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      // RLS requires path to start with the user's id as the first folder.
+      const filePath = `${user.id}/avatar-${Date.now()}.${ext}`;
+
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, { upsert: true, cacheControl: "3600", contentType: file.type });
       if (upErr) throw upErr;
+
       const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(filePath);
-      await updateProfile({ avatar_url: publicUrl });
-      setProfile(p => ({ ...p, avatar_url: publicUrl }));
+      // Cache-bust so the new image displays immediately
+      const bustedUrl = `${publicUrl}?v=${Date.now()}`;
+
+      await updateProfile({ avatar_url: bustedUrl });
+      setProfile(p => ({ ...p, avatar_url: bustedUrl }));
+
+      // Notify Layout (top bar avatar) to refresh
+      window.dispatchEvent(new CustomEvent("profile:updated", { detail: { avatar_url: bustedUrl } }));
+
       toast.success("Profile picture updated");
-    } catch (e) {
-      console.error(e);
-      toast.error("Upload failed");
+    } catch (e: any) {
+      console.error("Avatar upload failed:", e);
+      toast.error(e?.message || "Upload failed. Please try again.");
     } finally {
       setUploading(false);
     }
-  }, [profile.avatar_url]);
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -152,6 +161,7 @@ const Profile = () => {
       setSavingName(true);
       await updateProfile({ full_name: trimmed });
       setProfile(p => ({ ...p, full_name: trimmed }));
+      window.dispatchEvent(new CustomEvent("profile:updated", { detail: { full_name: trimmed } }));
       setEditingName(false);
       toast.success("Name updated");
     } catch { toast.error("Failed to save"); }
@@ -232,7 +242,13 @@ const Profile = () => {
       {/* Header row */}
       <div className="flex items-center justify-between px-1">
         <h1 className="text-xl font-bold tracking-tight">Profile</h1>
-        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-muted/60 hover:bg-muted">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate("/settings")}
+          aria-label="Open settings"
+          className="h-9 w-9 rounded-full bg-muted/60 hover:bg-muted"
+        >
           <Settings className="h-4 w-4 text-muted-foreground" />
         </Button>
       </div>

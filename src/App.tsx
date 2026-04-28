@@ -21,6 +21,7 @@ import DataExport from "./pages/DataExport";
 import SavingsGoals from "./pages/SavingsGoals";
 import DailyTasks from "./pages/DailyTasks";
 import NotFound from "./pages/NotFound";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -74,6 +75,7 @@ const App = () => (
           <Route path="/daily-tasks" element={<Layout><DailyTasks /></Layout>} />
           <Route path="/export" element={<Layout><DataExport /></Layout>} />
           <Route path="/profile" element={<Layout><Profile /></Layout>} />
+          <Route path="/settings" element={<Layout><Settings /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
