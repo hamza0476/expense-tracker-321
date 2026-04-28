@@ -9,7 +9,7 @@ import { ArrowDownLeft, ArrowUpRight, TrendingUp } from "lucide-react";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { getCurrencySymbol } from "@/lib/currencies";
 import { EXPENSE_CATEGORIES, getCategoryColor } from "@/lib/categories";
-import { SpendingTrendsChart } from "@/components/SpendingTrendsChart";
+import { SpendingLineChart } from "@/components/SpendingLineChart";
 
 interface Expense {
   id: string;
@@ -185,7 +185,7 @@ const Dashboard = () => {
       </div>
 
       {/* Spending Trends with toggle */}
-      <SpendingTrendsChart expenses={expenses} currencySymbol={currencySymbol} />
+      <SpendingLineChart expenses={expenses} currencySymbol={currencySymbol} />
 
       {/* Recent Transactions */}
       <div className="flex items-center justify-between px-1">

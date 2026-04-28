@@ -2,25 +2,12 @@ import { ReactNode, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
-import { toast } from "sonner";
+import { Sparkles } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
-import { FloatingAIChat } from "@/components/FloatingAIChat";
 import { LogoMenuSheet } from "@/components/LogoMenuSheet";
 import { pushNotificationService } from "@/services/pushNotifications";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 interface LayoutProps {
   children: ReactNode;
@@ -30,7 +17,6 @@ const Layout = ({ children }: LayoutProps) => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<{ full_name?: string; avatar_url?: string }>({});
-  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
@@ -75,12 +61,6 @@ const Layout = ({ children }: LayoutProps) => {
     }
   };
 
-  const handleLogout = async () => {
-    setShowLogoutDialog(false);
-    await supabase.auth.signOut();
-    toast.success("Logged out successfully");
-    navigate("/splash");
-  };
 
   // Premium loading skeleton
   if (authLoading) {
@@ -146,35 +126,34 @@ const Layout = ({ children }: LayoutProps) => {
           }
         />
 
-        <div className="flex items-center gap-0.5 md:gap-1.5 shrink-0">
-          <ThemeToggle />
-          
-          {/* Profile Avatar - Premium Ring */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Ask AI - Gradient floating button */}
+          <Button
+            type="button"
+            onClick={() => navigate("/ai-assistant")}
+            className="h-8 md:h-9 px-3 rounded-xl gap-1.5 text-xs font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-md shadow-purple-500/30 hover:shadow-lg hover:shadow-purple-500/40 active:scale-95 transition-all border-0"
+          >
+            <Sparkles className="w-3.5 h-3.5" strokeWidth={2.5} />
+            Ask AI
+          </Button>
+
+          {/* Profile Avatar - top right */}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate("/profile")}
-            className="hover:bg-primary/10 hover:text-primary transition-all duration-200 gap-2 rounded-full p-1 md:p-1.5 min-h-0 min-w-0 h-auto w-auto"
+            aria-label="Profile"
+            className="hover:bg-primary/10 transition-all duration-200 rounded-full p-1 md:p-1.5 min-h-0 min-w-0 h-auto w-auto"
           >
             <div className="relative">
               <div className="absolute -inset-0.5 bg-gradient-to-br from-primary to-accent rounded-full opacity-70" />
-              <Avatar className="h-6 w-6 md:h-7 md:w-7 relative border-2 border-background">
+              <Avatar className="h-7 w-7 md:h-8 md:w-8 relative border-2 border-background">
                 <AvatarImage src={profile.avatar_url} alt={profile.full_name} />
                 <AvatarFallback className="text-[10px] md:text-xs bg-gradient-to-br from-primary to-accent text-primary-foreground font-semibold">
                   {profile.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
             </div>
-          </Button>
-
-          {/* Logout Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowLogoutDialog(true)}
-            className="hover:bg-destructive/10 hover:text-destructive transition-all duration-200 text-xs font-medium rounded-full p-1.5 md:p-2 min-h-0 min-w-0 h-auto w-auto"
-          >
-            <LogOut className="w-3.5 h-3.5 md:w-4 md:h-4" />
           </Button>
         </div>
       </header>
@@ -187,25 +166,6 @@ const Layout = ({ children }: LayoutProps) => {
       </main>
 
       <BottomNav />
-      <FloatingAIChat />
-
-      {/* Logout Confirmation Dialog */}
-      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
-        <AlertDialogContent className="rounded-2xl border-border/50 shadow-xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-lg font-bold">Confirm Logout</AlertDialogTitle>
-            <AlertDialogDescription className="text-muted-foreground">
-              Are you sure you want to logout? You'll need to sign in again to access your account.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleLogout} className="bg-destructive hover:bg-destructive/90 rounded-xl">
-              Logout
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
