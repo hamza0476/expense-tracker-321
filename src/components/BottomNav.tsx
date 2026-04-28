@@ -1,13 +1,13 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { LayoutGrid, Receipt, Plus, BarChart3, Repeat } from "lucide-react";
+import { Home, Receipt, Plus, Wallet, Repeat } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { title: "Dashboard", url: "/", icon: LayoutGrid },
-  { title: "Transactions", url: "/expenses", icon: Receipt },
-  { title: "Add", url: "/add-expense", icon: Plus, isSpecial: true },
-  { title: "Analytics", url: "/budgets", icon: BarChart3 },
-  { title: "Recurring", url: "/recurring-expenses", icon: Repeat },
+  { url: "/", icon: Home, label: "Home" },
+  { url: "/expenses", icon: Receipt, label: "Transactions" },
+  { url: "/add-expense", icon: Plus, label: "Add", isSpecial: true },
+  { url: "/budgets", icon: Wallet, label: "Budget" },
+  { url: "/recurring-expenses", icon: Repeat, label: "Recurring" },
 ];
 
 export const BottomNav = () => {
@@ -16,7 +16,7 @@ export const BottomNav = () => {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-xl border-t border-border/40 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] z-50 md:hidden">
-      <div className="flex items-end justify-around px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      <div className="flex items-center justify-around px-3 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         {navItems.map((item) => {
           const isActive =
             item.url === "/"
@@ -26,44 +26,37 @@ export const BottomNav = () => {
           if (item.isSpecial) {
             return (
               <button
-                key={item.title}
+                key={item.label}
                 onClick={() => navigate(item.url)}
-                className="flex flex-col items-center gap-1 -mt-5"
+                aria-label={item.label}
+                className="flex items-center justify-center -mt-7"
               >
-                <div className="w-12 h-12 rounded-full bg-primary shadow-lg shadow-primary/30 flex items-center justify-center active:scale-95 transition-transform">
+                <div className="w-14 h-14 rounded-full bg-primary shadow-lg shadow-primary/40 ring-4 ring-card flex items-center justify-center active:scale-95 transition-transform">
                   <item.icon className="w-6 h-6 text-primary-foreground" strokeWidth={2.5} />
                 </div>
-                <span className="text-[10px] font-semibold text-muted-foreground tracking-wide uppercase">
-                  {item.title}
-                </span>
               </button>
             );
           }
 
           return (
             <button
-              key={item.title}
+              key={item.label}
               onClick={() => navigate(item.url)}
+              aria-label={item.label}
               className={cn(
-                "flex flex-col items-center justify-end gap-1 min-w-[56px] py-1.5 px-2 rounded-xl transition-all",
-                isActive && "bg-primary/10"
+                "flex items-center justify-center w-11 h-11 rounded-2xl transition-all active:scale-95",
+                isActive
+                  ? "bg-primary/10 ring-2 ring-primary/60"
+                  : "hover:bg-muted/60"
               )}
             >
               <item.icon
                 className={cn(
-                  "w-5 h-5 transition-colors",
+                  "w-[22px] h-[22px] transition-colors",
                   isActive ? "text-primary" : "text-muted-foreground"
                 )}
                 strokeWidth={isActive ? 2.5 : 2}
               />
-              <span
-                className={cn(
-                  "text-[10px] font-semibold tracking-wide uppercase",
-                  isActive ? "text-primary" : "text-muted-foreground"
-                )}
-              >
-                {item.title}
-              </span>
             </button>
           );
         })}
