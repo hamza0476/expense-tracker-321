@@ -161,6 +161,7 @@ const Profile = () => {
       setSavingName(true);
       await updateProfile({ full_name: trimmed });
       setProfile(p => ({ ...p, full_name: trimmed }));
+      window.dispatchEvent(new CustomEvent("profile:updated", { detail: { full_name: trimmed } }));
       setEditingName(false);
       toast.success("Name updated");
     } catch { toast.error("Failed to save"); }
