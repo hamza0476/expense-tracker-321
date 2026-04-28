@@ -242,7 +242,13 @@ const Profile = () => {
       {/* Header row */}
       <div className="flex items-center justify-between px-1">
         <h1 className="text-xl font-bold tracking-tight">Profile</h1>
-        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-muted/60 hover:bg-muted">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate("/settings")}
+          aria-label="Open settings"
+          className="h-9 w-9 rounded-full bg-muted/60 hover:bg-muted"
+        >
           <Settings className="h-4 w-4 text-muted-foreground" />
         </Button>
       </div>
