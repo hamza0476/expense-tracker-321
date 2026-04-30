@@ -10,6 +10,7 @@ import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { getCurrencySymbol } from "@/lib/currencies";
 import { EXPENSE_CATEGORIES, getCategoryColor } from "@/lib/categories";
 import { SpendingLineChart } from "@/components/SpendingLineChart";
+import { CategoryIcon } from "@/components/CategoryIcon";
 
 interface Expense {
   id: string;

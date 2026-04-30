@@ -27,6 +27,7 @@ import {
 import { EditExpenseDialog } from "@/components/EditExpenseDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { CategoryIcon } from "@/components/CategoryIcon";
 
 interface Expense {
   id: string;
