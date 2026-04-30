@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { ChevronDown, Check, Boxes } from "lucide-react";
+import { ChevronDown, Check, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { CategoryIcon } from "@/components/CategoryIcon";
+import { IconPickerModal } from "@/components/IconPickerModal";
 
 export interface CategoryOption {
   value: string;
@@ -50,59 +52,72 @@ export const CategoryPicker = ({
   className,
 }: Props) => {
   const [open, setOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const selected = options.find((o) => o.value === value) || options[0];
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+    <>
+      <div className={cn("flex items-center gap-2", className)}>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className="flex-1 h-12 rounded-2xl border border-border bg-card px-3 flex items-center gap-2.5 text-sm font-medium transition-colors hover:border-primary/40"
+            >
+              <CategoryIcon category={selected.value} size="sm" />
+              <span className="flex-1 text-left truncate">{selected.label}</span>
+              <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            align="start"
+            sideOffset={6}
+            className="w-[var(--radix-popover-trigger-width)] p-1.5 rounded-2xl shadow-xl border-border/60 max-h-[60vh] overflow-y-auto"
+          >
+            {options.map((opt) => {
+              const active = opt.value === value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    onChange(opt.value);
+                    setOpen(false);
+                  }}
+                  className={cn(
+                    "w-full h-11 px-2 rounded-xl flex items-center gap-2.5 text-sm font-medium transition-colors",
+                    active
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-muted text-foreground"
+                  )}
+                >
+                  {active ? (
+                    <Check className="w-4 h-4 shrink-0 ml-1" strokeWidth={3} />
+                  ) : (
+                    <span className="w-5" />
+                  )}
+                  <CategoryIcon category={opt.value} size="sm" />
+                  <span className="flex-1 text-left">{opt.label}</span>
+                </button>
+              );
+            })}
+          </PopoverContent>
+        </Popover>
         <button
           type="button"
-          className={cn(
-            "w-full h-12 rounded-2xl border border-border bg-card px-3 flex items-center gap-2.5 text-sm font-medium transition-colors hover:border-primary/40",
-            className
-          )}
+          onClick={() => setPickerOpen(true)}
+          className="h-12 w-12 rounded-2xl border border-border bg-card flex items-center justify-center text-primary transition-colors hover:border-primary/40 active:scale-95"
+          aria-label="Customize icon"
+          title="Customize icon"
         >
-          <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center shrink-0">
-            <Boxes className="w-3.5 h-3.5 text-primary" />
-          </div>
-          <span className="text-base shrink-0">{selected.emoji}</span>
-          <span className="flex-1 text-left truncate">{selected.label}</span>
-          <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
+          <Sparkles className="w-4 h-4" />
         </button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        sideOffset={6}
-        className="w-[var(--radix-popover-trigger-width)] p-1.5 rounded-2xl shadow-xl border-border/60 max-h-[60vh] overflow-y-auto"
-      >
-        {options.map((opt) => {
-          const active = opt.value === value;
-          return (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => {
-                onChange(opt.value);
-                setOpen(false);
-              }}
-              className={cn(
-                "w-full h-11 px-3 rounded-xl flex items-center gap-3 text-sm font-medium transition-colors",
-                active
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-muted text-foreground"
-              )}
-            >
-              {active ? (
-                <Check className="w-4 h-4 shrink-0" strokeWidth={3} />
-              ) : (
-                <span className="w-4" />
-              )}
-              <span className="text-lg">{opt.emoji}</span>
-              <span className="flex-1 text-left">{opt.label}</span>
-            </button>
-          );
-        })}
-      </PopoverContent>
-    </Popover>
+      </div>
+      <IconPickerModal
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        category={selected.value}
+      />
+    </>
   );
 };
