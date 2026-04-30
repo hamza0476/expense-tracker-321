@@ -10,6 +10,7 @@ import { Pencil, Plus, Trash2, Bell } from "lucide-react";
 import { format, getDaysInMonth, getDate } from "date-fns";
 import { getCurrencySymbol } from "@/lib/currencies";
 import { cn } from "@/lib/utils";
+import { CategoryIcon } from "@/components/CategoryIcon";
 import {
   AlertDialog,
   AlertDialogAction,
