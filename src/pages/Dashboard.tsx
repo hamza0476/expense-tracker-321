@@ -10,7 +10,6 @@ import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { getCurrencySymbol } from "@/lib/currencies";
 import { EXPENSE_CATEGORIES, getCategoryColor } from "@/lib/categories";
 import { SpendingLineChart } from "@/components/SpendingLineChart";
-import { CategoryIcon } from "@/components/CategoryIcon";
 
 interface Expense {
   id: string;
@@ -210,7 +209,12 @@ const Dashboard = () => {
               key={expense.id}
               className="rounded-2xl p-3 border-border/40 shadow-sm flex items-center gap-3"
             >
-              <CategoryIcon category={expense.category} size="md" />
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0"
+                style={{ backgroundColor: `${color}20` }}
+              >
+                {getCategoryEmoji(expense.category)}
+              </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm truncate">
                   {expense.vendor || expense.description || expense.category}

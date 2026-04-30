@@ -10,7 +10,6 @@ import { Pencil, Plus, Trash2, Bell } from "lucide-react";
 import { format, getDaysInMonth, getDate } from "date-fns";
 import { getCurrencySymbol } from "@/lib/currencies";
 import { cn } from "@/lib/utils";
-import { CategoryIcon } from "@/components/CategoryIcon";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -302,7 +301,12 @@ const Budgets = () => {
               )}
             >
               <div className="flex items-center gap-3">
-                <CategoryIcon category={item.category} size="md" />
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0"
+                  style={{ backgroundColor: `${color}22` }}
+                >
+                  {getCategoryEmoji(item.category)}
+                </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-sm">{item.category}</span>

@@ -27,7 +27,6 @@ import {
 import { EditExpenseDialog } from "@/components/EditExpenseDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { CategoryIcon } from "@/components/CategoryIcon";
 
 interface Expense {
   id: string;
@@ -249,13 +248,19 @@ const Expenses = () => {
               </span>
             </div>
             {group.items.map((expense) => {
+              const color = getCategoryColor(expense.category);
               const t = new Date(expense.created_at);
               return (
                 <Card
                   key={expense.id}
                   className="rounded-2xl p-3 border-border/40 shadow-sm flex items-center gap-3 group"
                 >
-                  <CategoryIcon category={expense.category} size="lg" />
+                  <div
+                    className="w-11 h-11 rounded-xl flex items-center justify-center text-lg shrink-0"
+                    style={{ backgroundColor: `${color}22` }}
+                  >
+                    {getCategoryEmoji(expense.category)}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm truncate">
                       {expense.vendor || expense.description || expense.category}
