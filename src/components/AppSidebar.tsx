@@ -1,4 +1,4 @@
-import { Home, Wallet, Target, Receipt, RefreshCw, ListTodo, User, PlusCircle, TrendingUp, Bot, Download } from "lucide-react";
+import { Home, Wallet, Target, Receipt, RefreshCw, ListTodo, User, PlusCircle, TrendingUp, Bot, Download, Tag } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
@@ -21,6 +21,7 @@ const menuItems = [
   { title: "Savings Goals", url: "/savings-goals", icon: Target },
   { title: "Expenses", url: "/expenses", icon: Receipt },
   { title: "Recurring", url: "/recurring-expenses", icon: RefreshCw },
+  { title: "Categories", url: "/categories", icon: Tag },
   { title: "Daily Tasks", url: "/daily-tasks", icon: ListTodo },
 ];
 

@@ -6,6 +6,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useCategoryOptions } from "@/hooks/useCategories";
 
 export interface CategoryOption {
   value: string;
@@ -46,11 +47,14 @@ interface Props {
 export const CategoryPicker = ({
   value,
   onChange,
-  options = EXPENSE_CATEGORY_OPTIONS,
+  options,
   className,
 }: Props) => {
+  const dynamicOptions = useCategoryOptions();
+  const resolved = options ?? dynamicOptions ?? EXPENSE_CATEGORY_OPTIONS;
   const [open, setOpen] = useState(false);
-  const selected = options.find((o) => o.value === value) || options[0];
+  const selected =
+    resolved.find((o) => o.value === value) || resolved[0] || EXPENSE_CATEGORY_OPTIONS[0];
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -75,7 +79,7 @@ export const CategoryPicker = ({
         sideOffset={6}
         className="w-[var(--radix-popover-trigger-width)] p-1.5 rounded-2xl shadow-xl border-border/60 max-h-[60vh] overflow-y-auto"
       >
-        {options.map((opt) => {
+        {resolved.map((opt) => {
           const active = opt.value === value;
           return (
             <button

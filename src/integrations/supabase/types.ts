@@ -107,6 +107,36 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_categories: {
+        Row: {
+          created_at: string
+          emoji: string
+          id: string
+          name: string
+          parent: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          name: string
+          parent?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          name?: string
+          parent?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_tasks: {
         Row: {
           created_at: string
