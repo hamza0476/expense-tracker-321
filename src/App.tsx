@@ -22,6 +22,7 @@ import SavingsGoals from "./pages/SavingsGoals";
 import DailyTasks from "./pages/DailyTasks";
 import NotFound from "./pages/NotFound";
 import Settings from "./pages/Settings";
+import Categories from "./pages/Categories";
 
 const queryClient = new QueryClient({
   defaultOptions: {
