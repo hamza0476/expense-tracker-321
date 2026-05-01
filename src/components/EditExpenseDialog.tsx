@@ -18,9 +18,12 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup,
+  SelectLabel,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from "@/lib/categories";
+import { PAYMENT_METHODS } from "@/lib/categories";
+import { useGroupedCategories } from "@/hooks/useCategories";
 import { format } from "date-fns";
 
 interface Expense {
