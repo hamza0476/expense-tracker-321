@@ -6,6 +6,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useCategoryOptions } from "@/hooks/useCategories";
 
 export interface CategoryOption {
   value: string;
