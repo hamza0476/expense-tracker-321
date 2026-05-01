@@ -64,22 +64,31 @@ export function useAllCategories(): {
 }
 
 /**
- * Picker-friendly options (built-ins + customs). Used by CategoryPicker.
- * Built-ins are kept to the original 12 EXPENSE_CATEGORIES so existing forms stay compact,
- * and any custom user categories are appended.
+ * Picker-friendly options shown across ALL forms (Add Expense, Budgets,
+ * Recurring, Savings Goals, etc.).
+ *
+ * Includes:
+ *  - the 12 base EXPENSE_CATEGORIES
+ *  - all EXTRA_CATEGORIES (subcategories like Coffee, Fuel, Internet…)
+ *  - the user's own custom categories
+ *
+ * Items with the same name are de-duplicated (custom > default).
  */
 export function useCategoryOptions(): CategoryOption[] {
   const { data: customs = [] } = useCustomCategories();
-  const builtIns: CategoryOption[] = EXPENSE_CATEGORIES.map((c) => ({
+
+  const defaults: CategoryOption[] = ALL_DEFAULT_CATEGORIES.map((c) => ({
     value: c.value,
     label: c.value,
     emoji: c.emoji,
   }));
-  const seen = new Set(builtIns.map((b) => b.value.toLowerCase()));
+
+  const seen = new Set(defaults.map((b) => b.value.toLowerCase()));
   const customOpts: CategoryOption[] = customs
     .filter((c) => !seen.has(c.name.toLowerCase()))
     .map((c) => ({ value: c.name, label: c.name, emoji: c.emoji }));
-  return [...builtIns, ...customOpts];
+
+  return [...defaults, ...customOpts];
 }
 
 export function useAddCategory() {
