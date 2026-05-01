@@ -8,10 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  SelectGroup, SelectLabel,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Tag, CalendarClock, Shapes, CheckSquare, Trash2 } from "lucide-react";
-import { EXPENSE_CATEGORIES } from "@/lib/categories";
+import { useGroupedCategories } from "@/hooks/useCategories";
 import { getCurrencySymbol } from "@/lib/currencies";
 import { Skeleton } from "@/components/ui/skeleton";
 
