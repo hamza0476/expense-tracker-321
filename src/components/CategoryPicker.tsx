@@ -79,7 +79,7 @@ export const CategoryPicker = ({
         sideOffset={6}
         className="w-[var(--radix-popover-trigger-width)] p-1.5 rounded-2xl shadow-xl border-border/60 max-h-[60vh] overflow-y-auto"
       >
-        {options.map((opt) => {
+        {resolved.map((opt) => {
           const active = opt.value === value;
           return (
             <button
