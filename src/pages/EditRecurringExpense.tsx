@@ -199,11 +199,18 @@ const EditRecurringExpense = () => {
                 <SelectValue />
               </div>
             </SelectTrigger>
-            <SelectContent>
-              {EXPENSE_CATEGORIES.map((c) => (
-                <SelectItem key={c.value} value={c.value}>
-                  {c.label}
-                </SelectItem>
+            <SelectContent className="max-h-[60vh]">
+              {groupedCategories.map(([group, items]) => (
+                <SelectGroup key={group}>
+                  <SelectLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    {group}
+                  </SelectLabel>
+                  {items.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>
+                      {c.emoji} {c.value}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               ))}
             </SelectContent>
           </Select>
