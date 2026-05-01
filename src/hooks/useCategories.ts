@@ -91,6 +91,21 @@ export function useCategoryOptions(): CategoryOption[] {
   return [...defaults, ...customOpts];
 }
 
+/**
+ * Same data as useAllCategories, but pre-grouped by parent for use in
+ * grouped <Select> dropdowns. Format: [groupName, items[]].
+ */
+export function useGroupedCategories(): Array<[string, CategoryDef[]]> {
+  const { data } = useAllCategories();
+  const map = new Map<string, CategoryDef[]>();
+  for (const c of data) {
+    const key = c.parent || "Other";
+    if (!map.has(key)) map.set(key, []);
+    map.get(key)!.push(c);
+  }
+  return Array.from(map.entries());
+}
+
 export function useAddCategory() {
   const qc = useQueryClient();
   return useMutation({
