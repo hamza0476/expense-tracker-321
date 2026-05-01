@@ -46,6 +46,7 @@ interface EditExpenseDialogProps {
 
 export function EditExpenseDialog({ expense, open, onOpenChange, onSuccess }: EditExpenseDialogProps) {
   const [loading, setLoading] = useState(false);
+  const groupedCategories = useGroupedCategories();
   const [formData, setFormData] = useState({
     amount: "",
     category: "",
