@@ -20,6 +20,7 @@ const EditRecurringExpense = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { toast } = useToast();
+  const groupedCategories = useGroupedCategories();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
