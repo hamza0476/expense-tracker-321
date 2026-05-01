@@ -215,7 +215,7 @@ const AddExpense = () => {
             type="button"
             onClick={() => {
               setType("expense");
-              if (!EXPENSE_CATEGORY_OPTIONS.some((c) => c.value === formData.category)) {
+              if (INCOME_CATEGORY_OPTIONS.some((c) => c.value === formData.category)) {
                 setFormData((f) => ({ ...f, category: "Dining" }));
               }
             }}
