@@ -29,6 +29,7 @@ interface SavingsGoal {
 }
 
 const SavingsGoals = () => {
+  const groupedCategories = useGroupedCategories();
   const [goals, setGoals] = useState<SavingsGoal[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
