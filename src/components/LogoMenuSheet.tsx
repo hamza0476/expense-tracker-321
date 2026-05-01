@@ -29,6 +29,7 @@ const PRIMARY = [
   { to: "/expenses", label: "Transactions", desc: "All your spending", Icon: Receipt, tone: "bg-primary/15 text-primary" },
   { to: "/recurring-expenses", label: "Recurring", desc: "Subscriptions & bills", Icon: RefreshCw, tone: "bg-accent/15 text-accent" },
   { to: "/savings-goals", label: "Savings Goals", desc: "Reach your targets", Icon: Target, tone: "bg-success/15 text-success" },
+  { to: "/categories", label: "Categories", desc: "Manage all categories", Icon: Tag, tone: "bg-primary/15 text-primary" },
   { to: "/daily-tasks", label: "Daily Tasks", desc: "Your money to-dos", Icon: ListTodo, tone: "bg-warning/15 text-warning" },
 ];
 
