@@ -266,7 +266,7 @@ const AddExpense = () => {
           <CategoryPicker
             value={formData.category}
             onChange={(v) => setFormData({ ...formData, category: v })}
-            options={type === "income" ? INCOME_CATEGORY_OPTIONS : EXPENSE_CATEGORY_OPTIONS}
+            {...(type === "income" ? { options: INCOME_CATEGORY_OPTIONS } : {})}
           />
         </div>
 
