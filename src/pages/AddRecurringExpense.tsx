@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  SelectGroup, SelectLabel,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Tag, CalendarClock, Shapes, CheckSquare, Bell, Sparkles } from "lucide-react";
-import { EXPENSE_CATEGORIES } from "@/lib/categories";
+import { useGroupedCategories } from "@/hooks/useCategories";
 import { getCurrencySymbol } from "@/lib/currencies";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
