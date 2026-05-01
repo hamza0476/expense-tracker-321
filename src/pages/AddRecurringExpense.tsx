@@ -25,6 +25,7 @@ const REMINDER_OPTIONS = [
 const AddRecurringExpense = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const groupedCategories = useGroupedCategories();
   const [saving, setSaving] = useState(false);
   const [currency, setCurrency] = useState("USD");
 
