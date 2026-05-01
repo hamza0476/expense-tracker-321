@@ -139,11 +139,18 @@ export function EditExpenseDialog({ expense, open, onOpenChange, onSuccess }: Ed
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
-                <SelectContent>
-                  {EXPENSE_CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </SelectItem>
+                <SelectContent className="max-h-[60vh]">
+                  {groupedCategories.map(([group, items]) => (
+                    <SelectGroup key={group}>
+                      <SelectLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        {group}
+                      </SelectLabel>
+                      {items.map((cat) => (
+                        <SelectItem key={cat.value} value={cat.value}>
+                          {cat.emoji} {cat.value}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
                   ))}
                 </SelectContent>
               </Select>
