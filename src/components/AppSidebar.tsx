@@ -1,4 +1,4 @@
-import { Home, Wallet, Target, Receipt, RefreshCw, ListTodo, User, PlusCircle, TrendingUp, Bot, Download } from "lucide-react";
+import { Home, Wallet, Target, Receipt, RefreshCw, ListTodo, User, PlusCircle, TrendingUp, Bot, Download, Tag } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar,
