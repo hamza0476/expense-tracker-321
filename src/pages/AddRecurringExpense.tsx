@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  SelectGroup, SelectLabel,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Tag, CalendarClock, Shapes, CheckSquare, Bell, Sparkles } from "lucide-react";
-import { EXPENSE_CATEGORIES } from "@/lib/categories";
+import { useGroupedCategories } from "@/hooks/useCategories";
 import { getCurrencySymbol } from "@/lib/currencies";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,7 @@ const REMINDER_OPTIONS = [
 const AddRecurringExpense = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const groupedCategories = useGroupedCategories();
   const [saving, setSaving] = useState(false);
   const [currency, setCurrency] = useState("USD");
 
@@ -163,11 +165,18 @@ const AddRecurringExpense = () => {
                 <SelectValue />
               </div>
             </SelectTrigger>
-            <SelectContent>
-              {EXPENSE_CATEGORIES.map((c) => (
-                <SelectItem key={c.value} value={c.value}>
-                  {c.label}
-                </SelectItem>
+            <SelectContent className="max-h-[60vh]">
+              {groupedCategories.map(([group, items]) => (
+                <SelectGroup key={group}>
+                  <SelectLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    {group}
+                  </SelectLabel>
+                  {items.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>
+                      {c.emoji} {c.value}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               ))}
             </SelectContent>
           </Select>

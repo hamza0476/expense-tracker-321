@@ -215,7 +215,7 @@ const AddExpense = () => {
             type="button"
             onClick={() => {
               setType("expense");
-              if (!EXPENSE_CATEGORY_OPTIONS.some((c) => c.value === formData.category)) {
+              if (INCOME_CATEGORY_OPTIONS.some((c) => c.value === formData.category)) {
                 setFormData((f) => ({ ...f, category: "Dining" }));
               }
             }}
@@ -266,7 +266,7 @@ const AddExpense = () => {
           <CategoryPicker
             value={formData.category}
             onChange={(v) => setFormData({ ...formData, category: v })}
-            options={type === "income" ? INCOME_CATEGORY_OPTIONS : EXPENSE_CATEGORY_OPTIONS}
+            {...(type === "income" ? { options: INCOME_CATEGORY_OPTIONS } : {})}
           />
         </div>
 

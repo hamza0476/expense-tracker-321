@@ -8,10 +8,11 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  SelectGroup, SelectLabel,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Tag, CalendarClock, Shapes, CheckSquare, Trash2 } from "lucide-react";
-import { EXPENSE_CATEGORIES } from "@/lib/categories";
+import { useGroupedCategories } from "@/hooks/useCategories";
 import { getCurrencySymbol } from "@/lib/currencies";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -19,6 +20,7 @@ const EditRecurringExpense = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { toast } = useToast();
+  const groupedCategories = useGroupedCategories();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -197,11 +199,18 @@ const EditRecurringExpense = () => {
                 <SelectValue />
               </div>
             </SelectTrigger>
-            <SelectContent>
-              {EXPENSE_CATEGORIES.map((c) => (
-                <SelectItem key={c.value} value={c.value}>
-                  {c.label}
-                </SelectItem>
+            <SelectContent className="max-h-[60vh]">
+              {groupedCategories.map(([group, items]) => (
+                <SelectGroup key={group}>
+                  <SelectLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    {group}
+                  </SelectLabel>
+                  {items.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>
+                      {c.emoji} {c.value}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               ))}
             </SelectContent>
           </Select>

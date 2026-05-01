@@ -135,7 +135,6 @@ const CreateBudget = () => {
           <CategoryPicker
             value={category}
             onChange={setCategory}
-            options={EXPENSE_CATEGORY_OPTIONS}
           />
         </div>
 

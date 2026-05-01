@@ -18,9 +18,12 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup,
+  SelectLabel,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { EXPENSE_CATEGORIES, PAYMENT_METHODS } from "@/lib/categories";
+import { PAYMENT_METHODS } from "@/lib/categories";
+import { useGroupedCategories } from "@/hooks/useCategories";
 import { format } from "date-fns";
 
 interface Expense {
@@ -43,6 +46,7 @@ interface EditExpenseDialogProps {
 
 export function EditExpenseDialog({ expense, open, onOpenChange, onSuccess }: EditExpenseDialogProps) {
   const [loading, setLoading] = useState(false);
+  const groupedCategories = useGroupedCategories();
   const [formData, setFormData] = useState({
     amount: "",
     category: "",
@@ -135,11 +139,18 @@ export function EditExpenseDialog({ expense, open, onOpenChange, onSuccess }: Ed
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
-                <SelectContent>
-                  {EXPENSE_CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.value} value={cat.value}>
-                      {cat.label}
-                    </SelectItem>
+                <SelectContent className="max-h-[60vh]">
+                  {groupedCategories.map(([group, items]) => (
+                    <SelectGroup key={group}>
+                      <SelectLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        {group}
+                      </SelectLabel>
+                      {items.map((cat) => (
+                        <SelectItem key={cat.value} value={cat.value}>
+                          {cat.emoji} {cat.value}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
                   ))}
                 </SelectContent>
               </Select>
