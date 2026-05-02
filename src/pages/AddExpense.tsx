@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,19 +22,26 @@ import {
 
 const AddExpense = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [defaultCurrency, setDefaultCurrency] = useState("USD");
   const [type, setType] = useState<"expense" | "income">("expense");
   const [showScanner, setShowScanner] = useState(false);
-  const [formData, setFormData] = useState({
-    amount: "",
-    category: "Dining",
-    description: "",
-    date: new Date(),
-    paymentMethod: "",
-    vendor: "",
-    notes: "",
+  const [formData, setFormData] = useState(() => {
+    const qpAmount = searchParams.get("amount") || "";
+    const qpVendor = searchParams.get("vendor") || "";
+    const qpDate = searchParams.get("date");
+    const qpDesc = searchParams.get("description") || "";
+    return {
+      amount: qpAmount,
+      category: "Dining",
+      description: "",
+      date: qpDate ? new Date(qpDate) : new Date(),
+      paymentMethod: "",
+      vendor: qpVendor,
+      notes: qpDesc,
+    };
   });
 
   useEffect(() => {
