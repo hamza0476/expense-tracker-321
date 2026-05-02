@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ArrowDownLeft, ArrowUpRight, TrendingUp } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, TrendingUp, ScanLine, Plus } from "lucide-react";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { getCurrencySymbol } from "@/lib/currencies";
 import { EXPENSE_CATEGORIES, getCategoryColor } from "@/lib/categories";
@@ -182,6 +182,25 @@ const Dashboard = () => {
             {monthlyExpense.toLocaleString(undefined, { maximumFractionDigits: 0 })}
           </p>
         </Card>
+      </div>
+
+      {/* Quick actions */}
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          onClick={() => navigate("/scanner")}
+          variant="outline"
+          className="h-12 rounded-2xl border-border/40 justify-start gap-2 font-semibold text-sm"
+        >
+          <ScanLine className="w-4 h-4 text-primary" />
+          Scan Receipt
+        </Button>
+        <Button
+          onClick={() => navigate("/add-expense")}
+          className="h-12 rounded-2xl justify-start gap-2 font-semibold text-sm shadow-lg shadow-primary/30"
+        >
+          <Plus className="w-4 h-4" />
+          Add Manually
+        </Button>
       </div>
 
       {/* Spending Trends with toggle */}
