@@ -23,6 +23,7 @@ import DailyTasks from "./pages/DailyTasks";
 import NotFound from "./pages/NotFound";
 import Settings from "./pages/Settings";
 import Categories from "./pages/Categories";
+import Scanner from "./pages/Scanner";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -78,6 +79,7 @@ const App = () => (
           <Route path="/profile" element={<Layout><Profile /></Layout>} />
           <Route path="/settings" element={<Layout><Settings /></Layout>} />
           <Route path="/categories" element={<Layout><Categories /></Layout>} />
+          <Route path="/scanner" element={<Layout><Scanner /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
