@@ -149,6 +149,7 @@ const AddExpense = () => {
       category: data.category || formData.category,
       vendor: data.vendor || formData.vendor,
       notes: data.description || formData.notes,
+      date: data.date ? new Date(data.date) : formData.date,
     });
     setShowScanner(false);
   };
