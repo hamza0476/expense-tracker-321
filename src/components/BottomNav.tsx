@@ -1,13 +1,13 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, Receipt, Plus, Wallet, Repeat } from "lucide-react";
+import { Home, Receipt, Plus, BarChart3, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { url: "/", icon: Home, label: "Home" },
+  { url: "/", icon: Home, label: "Dashboard" },
   { url: "/expenses", icon: Receipt, label: "Transactions" },
   { url: "/add-expense", icon: Plus, label: "Add", isSpecial: true },
-  { url: "/budgets", icon: Wallet, label: "Budget" },
-  { url: "/recurring-expenses", icon: Repeat, label: "Recurring" },
+  { url: "/analytics", icon: BarChart3, label: "Analytics" },
+  { url: "/profile", icon: User, label: "Profile" },
 ];
 
 export const BottomNav = () => {
