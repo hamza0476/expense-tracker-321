@@ -24,6 +24,7 @@ import NotFound from "./pages/NotFound";
 import Settings from "./pages/Settings";
 import Categories from "./pages/Categories";
 import Scanner from "./pages/Scanner";
+import Analytics from "./pages/Analytics";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -80,6 +81,7 @@ const App = () => (
           <Route path="/settings" element={<Layout><Settings /></Layout>} />
           <Route path="/categories" element={<Layout><Categories /></Layout>} />
           <Route path="/scanner" element={<Layout><Scanner /></Layout>} />
+          <Route path="/analytics" element={<Layout><Analytics /></Layout>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

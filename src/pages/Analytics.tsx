@@ -1,211 +1,343 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import { TrendingUp, TrendingDown, DollarSign, Calendar } from "lucide-react";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { useTransactions } from "@/hooks/useTransactions";
+import { useBudgets } from "@/hooks/useBudgets";
 import { getCurrencySymbol } from "@/lib/currencies";
+import { ALL_DEFAULT_CATEGORIES } from "@/lib/categories";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AnalyticsCard } from "@/components/analytics/AnalyticsCard";
+import { SpendingTrendChart } from "@/components/analytics/SpendingTrendChart";
+import { CategoryBreakdown } from "@/components/analytics/CategoryBreakdown";
+import { BudgetProgress } from "@/components/analytics/BudgetProgress";
+import { InsightCard } from "@/components/analytics/InsightCard";
+import {
+  Wallet,
+  TrendingDown,
+  PiggyBank,
+  Lightbulb,
+  AlertTriangle,
+  Sparkles,
+  ChevronRight,
+} from "lucide-react";
 
-interface Expense {
-  amount: number;
-  date: string;
-  category: string;
-}
+type Period = "Today" | "This week" | "Month" | "Year";
+
+const periodStart = (p: Period): Date => {
+  const now = new Date();
+  if (p === "Today") return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (p === "This week") {
+    const d = new Date(now);
+    const day = d.getDay() || 7;
+    d.setDate(d.getDate() - (day - 1));
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+  if (p === "Year") return new Date(now.getFullYear(), 0, 1);
+  return new Date(now.getFullYear(), now.getMonth(), 1);
+};
+
+const previousRange = (p: Period): { start: Date; end: Date } => {
+  const now = new Date();
+  if (p === "Today") {
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return { start, end };
+  }
+  if (p === "This week") {
+    const cur = periodStart(p);
+    const start = new Date(cur);
+    start.setDate(start.getDate() - 7);
+    return { start, end: cur };
+  }
+  if (p === "Year") {
+    return {
+      start: new Date(now.getFullYear() - 1, 0, 1),
+      end: new Date(now.getFullYear(), 0, 1),
+    };
+  }
+  return {
+    start: new Date(now.getFullYear(), now.getMonth() - 1, 1),
+    end: new Date(now.getFullYear(), now.getMonth(), 1),
+  };
+};
 
 const Analytics = () => {
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const navigate = useNavigate();
+  const { data: expenses = [], isLoading: loadingExp } = useTransactions();
+  const { data: budgets = [], isLoading: loadingBud } = useBudgets();
+  const [period, setPeriod] = useState<Period>("Month");
   const [currencySymbol, setCurrencySymbol] = useState("$");
+  const [monthlyIncome, setMonthlyIncome] = useState(0);
 
   useEffect(() => {
-    fetchExpenses();
-    fetchCurrency();
-  }, []);
-
-  const fetchExpenses = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('expenses')
-        .select('amount, date, category')
-        .eq('user_id', user.id)
-        .order('date', { ascending: true });
-
-      if (error) throw error;
-      setExpenses(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchCurrency = async () => {
-    try {
+    (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const { data: profile } = await supabase
         .from("profiles")
-        .select("default_currency")
+        .select("default_currency, monthly_income")
         .eq("user_id", user.id)
-        .single();
-      if (profile?.default_currency) {
-        setCurrencySymbol(getCurrencySymbol(profile.default_currency));
-      }
-    } catch (e) {
-      // ignore
+        .maybeSingle();
+      if (profile?.default_currency) setCurrencySymbol(getCurrencySymbol(profile.default_currency));
+      if (profile?.monthly_income) setMonthlyIncome(Number(profile.monthly_income));
+    })();
+  }, []);
+
+  // Filter expenses for selected period
+  const { current, previous } = useMemo(() => {
+    const start = periodStart(period);
+    const prev = previousRange(period);
+    const inRange = expenses.filter((e) => {
+      const d = new Date(e.date);
+      return d >= start;
+    });
+    const inPrev = expenses.filter((e) => {
+      const d = new Date(e.date);
+      return d >= prev.start && d < prev.end;
+    });
+    return { current: inRange, previous: inPrev };
+  }, [expenses, period]);
+
+  // Income heuristic: rows tagged as Income or Salary; otherwise fall back to monthly_income.
+  const isIncomeRow = (cat: string) =>
+    /income|salary|wages|bonus|refund/i.test(cat);
+
+  const totals = useMemo(() => {
+    const expense = current
+      .filter((e) => !isIncomeRow(e.category))
+      .reduce((s, e) => s + Number(e.amount), 0);
+    const incomeRows = current
+      .filter((e) => isIncomeRow(e.category))
+      .reduce((s, e) => s + Number(e.amount), 0);
+    // Fallback: prorate monthly income if no income rows
+    let income = incomeRows;
+    if (income === 0 && monthlyIncome > 0) {
+      if (period === "Today") income = monthlyIncome / 30;
+      else if (period === "This week") income = monthlyIncome / 4.33;
+      else if (period === "Year") income = monthlyIncome * 12;
+      else income = monthlyIncome;
     }
-  };
+    const savings = income - expense;
 
-  const getMonthlyTrend = () => {
-    const monthlyData: { [key: string]: number } = {};
-    
-    expenses.forEach(exp => {
-      const month = exp.date.substring(0, 7); // YYYY-MM
-      monthlyData[month] = (monthlyData[month] || 0) + Number(exp.amount);
+    const prevExpense = previous
+      .filter((e) => !isIncomeRow(e.category))
+      .reduce((s, e) => s + Number(e.amount), 0);
+    const prevIncomeRows = previous
+      .filter((e) => isIncomeRow(e.category))
+      .reduce((s, e) => s + Number(e.amount), 0);
+    let prevIncome = prevIncomeRows;
+    if (prevIncome === 0 && monthlyIncome > 0) {
+      prevIncome = period === "Year" ? monthlyIncome * 12 : monthlyIncome;
+    }
+    const prevSavings = prevIncome - prevExpense;
+
+    const pct = (a: number, b: number) =>
+      b > 0 ? ((a - b) / b) * 100 : a > 0 ? 100 : 0;
+
+    return {
+      income,
+      expense,
+      savings,
+      incomeTrend: pct(income, prevIncome),
+      expenseTrend: pct(expense, prevExpense),
+      savingsTrend: pct(savings, prevSavings),
+    };
+  }, [current, previous, monthlyIncome, period]);
+
+  const expenseRows = useMemo(
+    () => current.filter((e) => !isIncomeRow(e.category)),
+    [current]
+  );
+
+  // Budget tracking — filter budgets matching current period (best-effort: any active budget)
+  const budgetItems = useMemo(() => {
+    const spentByCat = new Map<string, number>();
+    expenseRows.forEach((e) => {
+      spentByCat.set(e.category, (spentByCat.get(e.category) || 0) + Number(e.amount));
     });
+    return budgets.slice(0, 4).map((b) => ({
+      category: b.category,
+      budget: Number(b.amount),
+      spent: spentByCat.get(b.category) || 0,
+    }));
+  }, [budgets, expenseRows]);
 
-    return Object.entries(monthlyData)
-      .map(([month, amount]) => ({
-        month,
-        amount: Number(amount.toFixed(2))
-      }))
-      .slice(-12); // Last 12 months
-  };
+  // Insights
+  const insights = useMemo(() => {
+    const arr: { Icon: any; title: string; description?: string; tone: "info" | "warning" | "success" }[] = [];
+    // Top category
+    const map = new Map<string, number>();
+    expenseRows.forEach((e) => map.set(e.category, (map.get(e.category) || 0) + Number(e.amount)));
+    const top = Array.from(map.entries()).sort((a, b) => b[1] - a[1])[0];
+    if (top) {
+      arr.push({
+        Icon: Lightbulb,
+        title: `You spent most on ${top[0]} this period`,
+        description: `Try to cap it next ${period.toLowerCase()} for more savings.`,
+        tone: "info",
+      });
+    }
+    if (totals.expenseTrend > 5) {
+      arr.push({
+        Icon: AlertTriangle,
+        title: `Expenses increased by ${totals.expenseTrend.toFixed(0)}%`,
+        description: "Compared to the previous period.",
+        tone: "warning",
+      });
+    } else if (totals.expenseTrend < -5) {
+      arr.push({
+        Icon: Sparkles,
+        title: `Expenses dropped ${Math.abs(totals.expenseTrend).toFixed(0)}%`,
+        description: "Great job staying on track!",
+        tone: "success",
+      });
+    }
+    if (totals.savings > 0 && totals.savingsTrend > 5) {
+      arr.push({
+        Icon: Sparkles,
+        title: `You saved more than last ${period.toLowerCase()}`,
+        description: `That's a ${totals.savingsTrend.toFixed(0)}% boost.`,
+        tone: "success",
+      });
+    }
+    return arr;
+  }, [expenseRows, totals, period]);
 
-  const getCategoryTrend = () => {
-    const categoryData: { [key: string]: number } = {};
-    
-    expenses.forEach(exp => {
-      categoryData[exp.category] = (categoryData[exp.category] || 0) + Number(exp.amount);
-    });
+  const recent = useMemo(() => current.slice(0, 5), [current]);
 
-    return Object.entries(categoryData)
-      .map(([category, amount]) => ({
-        category,
-        amount: Number(amount.toFixed(2))
-      }))
-      .sort((a, b) => b.amount - a.amount);
-  };
+  const fmt = (v: number) =>
+    `${currencySymbol}${Math.abs(v).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 
-  const getStats = () => {
-    if (expenses.length === 0) return { total: 0, avg: 0, trend: 0 };
-
-    const total = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
-    const avg = total / expenses.length;
-
-    // Calculate trend (last month vs previous month)
-    const now = new Date();
-    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1);
-    const prevMonth = new Date(now.getFullYear(), now.getMonth() - 2);
-
-    const lastMonthTotal = expenses
-      .filter(e => new Date(e.date) >= lastMonth && new Date(e.date) < now)
-      .reduce((sum, exp) => sum + Number(exp.amount), 0);
-
-    const prevMonthTotal = expenses
-      .filter(e => new Date(e.date) >= prevMonth && new Date(e.date) < lastMonth)
-      .reduce((sum, exp) => sum + Number(exp.amount), 0);
-
-    const trend = prevMonthTotal > 0 
-      ? ((lastMonthTotal - prevMonthTotal) / prevMonthTotal) * 100 
-      : 0;
-
-    return { total, avg, trend };
-  };
-
-  if (loading) return <div className="p-4 md:p-8">Loading...</div>;
-
-  const monthlyTrend = getMonthlyTrend();
-  const categoryTrend = getCategoryTrend();
-  const stats = getStats();
+  if (loadingExp || loadingBud) {
+    return (
+      <div className="p-4 space-y-3">
+        <Skeleton className="h-8 w-40" />
+        <Skeleton className="h-9 w-full rounded-full" />
+        <Skeleton className="h-16 w-full rounded-2xl" />
+        <Skeleton className="h-16 w-full rounded-2xl" />
+        <Skeleton className="h-16 w-full rounded-2xl" />
+        <Skeleton className="h-44 w-full rounded-2xl" />
+      </div>
+    );
+  }
 
   return (
-    <div className="p-4 md:p-8 space-y-4">
+    <div className="p-4 pb-24 md:pb-8 max-w-3xl mx-auto space-y-3">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold">
-          <span className="mr-2">📊</span>
-          <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-            Analytics Dashboard
-          </span>
-        </h1>
-        <p className="text-muted-foreground mt-1">Visual insights and spending trends</p>
+        <h1 className="text-xl font-bold text-foreground">Analytics</h1>
+        <p className="text-xs text-muted-foreground">Your financial insights</p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-        <Card className="p-3">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">💰</span>
-              <p className="text-xs text-muted-foreground">Total</p>
-            </div>
-            <p className="text-xl font-bold text-primary tabular-nums">{currencySymbol}{stats.total.toFixed(2)}</p>
-          </div>
-        </Card>
-
-        <Card className="p-3">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">📈</span>
-              <p className="text-xs text-muted-foreground">Average</p>
-            </div>
-            <p className="text-xl font-bold text-accent tabular-nums">{currencySymbol}{stats.avg.toFixed(2)}</p>
-          </div>
-        </Card>
-
-        <Card className="p-3 col-span-2 lg:col-span-1">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">{stats.trend >= 0 ? '📉' : '📊'}</span>
-              <p className="text-xs text-muted-foreground">Trend</p>
-            </div>
-            <p className={`text-xl font-bold ${stats.trend >= 0 ? 'text-destructive' : 'text-success'}`}>
-              {stats.trend >= 0 ? '+' : ''}{stats.trend.toFixed(1)}%
-            </p>
-          </div>
-        </Card>
+      {/* Period filter */}
+      <div className="flex bg-muted rounded-full p-1 text-xs">
+        {(["Today", "This week", "Month", "Year"] as Period[]).map((p) => (
+          <button
+            key={p}
+            onClick={() => setPeriod(p)}
+            className={`flex-1 py-1.5 rounded-full font-medium transition-colors ${
+              period === p
+                ? "bg-card text-primary shadow-sm"
+                : "text-muted-foreground"
+            }`}
+          >
+            {p}
+          </button>
+        ))}
       </div>
 
-        <Card className="p-4 md:p-6">
-        <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
-          <span>📅</span>
-          <span className="text-primary">Monthly Spending Trend</span>
-        </h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={monthlyTrend}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Line type="monotone" dataKey="amount" stroke="hsl(var(--primary))" strokeWidth={2} />
-          </LineChart>
-        </ResponsiveContainer>
-      </Card>
+      {/* Overview cards */}
+      <div className="space-y-2.5">
+        <AnalyticsCard
+          label="Total Income"
+          amount={fmt(totals.income)}
+          Icon={Wallet}
+          tone="income"
+          trend={totals.incomeTrend}
+          trendDirection="good-up"
+        />
+        <AnalyticsCard
+          label="Total Expenses"
+          amount={fmt(totals.expense)}
+          Icon={TrendingDown}
+          tone="expense"
+          trend={totals.expenseTrend}
+          trendDirection="good-down"
+        />
+        <AnalyticsCard
+          label="Savings"
+          amount={fmt(totals.savings)}
+          Icon={PiggyBank}
+          tone="savings"
+          trend={totals.savingsTrend}
+          trendDirection="good-up"
+        />
+      </div>
 
-      <Card className="p-4 md:p-6">
-        <h2 className="text-lg font-bold mb-3 flex items-center gap-2">
-          <span>🏷️</span>
-          <span className="text-accent">Spending by Category</span>
-        </h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={categoryTrend}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="category" angle={-45} textAnchor="end" height={100} />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="amount" fill="hsl(var(--primary))" />
-          </BarChart>
-        </ResponsiveContainer>
-      </Card>
+      <SpendingTrendChart expenses={expenseRows} currencySymbol={currencySymbol} />
+
+      {/* Insights */}
+      {insights.length > 0 && (
+        <div className="space-y-2">
+          {insights.map((i, idx) => (
+            <InsightCard key={idx} {...i} />
+          ))}
+        </div>
+      )}
+
+      <BudgetProgress items={budgetItems} currencySymbol={currencySymbol} />
+
+      <CategoryBreakdown expenses={expenseRows} currencySymbol={currencySymbol} />
+
+      {/* Recent transactions */}
+      <div className="bg-card rounded-2xl p-4 shadow-sm border border-border/50">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-foreground">Recent Transactions</h3>
+          <button
+            onClick={() => navigate("/expenses")}
+            className="text-xs font-medium text-primary flex items-center gap-0.5"
+          >
+            View All <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+        {recent.length === 0 ? (
+          <p className="text-xs text-muted-foreground text-center py-4">No transactions yet</p>
+        ) : (
+          <div className="space-y-2.5">
+            {recent.map((t) => {
+              const def = ALL_DEFAULT_CATEGORIES.find((c) => c.value === t.category);
+              const isIncome = isIncomeRow(t.category);
+              return (
+                <div key={t.id} className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center shrink-0 text-base">
+                    {def?.emoji ?? "📦"}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-foreground truncate leading-tight">
+                      {t.vendor || t.description || t.category}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {new Date(t.date).toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                      })}{" "}
+                      · {t.category}
+                    </p>
+                  </div>
+                  <p
+                    className={`text-xs font-bold tabular-nums ${
+                      isIncome ? "text-success" : "text-destructive"
+                    }`}
+                  >
+                    {isIncome ? "+" : "-"}
+                    {fmt(Number(t.amount))}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

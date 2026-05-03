@@ -18,6 +18,7 @@ import {
   ChevronRight,
   TrendingUp,
   Tag,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +27,7 @@ interface Props {
 }
 
 const PRIMARY = [
+  { to: "/analytics", label: "Analytics", desc: "Insights & trends", Icon: BarChart3, tone: "bg-primary/15 text-primary" },
   { to: "/expenses", label: "Transactions", desc: "All your spending", Icon: Receipt, tone: "bg-primary/15 text-primary" },
   { to: "/recurring-expenses", label: "Recurring", desc: "Subscriptions & bills", Icon: RefreshCw, tone: "bg-accent/15 text-accent" },
   { to: "/savings-goals", label: "Savings Goals", desc: "Reach your targets", Icon: Target, tone: "bg-success/15 text-success" },
